@@ -1,0 +1,558 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { ArrowLeft, Play, Star, Calendar, Clock, Tv, Film, Sparkles, ChevronDown, Loader2, AlertTriangle, Heart, Share2, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem } from "@/lib/types";
+
+interface WatchViewProps {
+  target: WatchTarget;
+  onBack: () => void;
+  onPlayItem?: (item: MediaItem | AnimeItem) => void;
+}
+
+function isAnimeDetails(d: any): d is AnimeDetails {
+  return d && d.type === "anime" && d.anilistId !== undefined;
+}
+
+function buildEmbedUrl(target: WatchTarget, details: any, season: number, episode: number): string {
+  if (target.source === "anilist" && details?.embedBaseUrl) {
+    return `${details.embedBaseUrl}/${season}/${episode}`;
+  }
+  // tmdb path
+  if (details?.embedUrl && target.type !== "movie") {
+    // replace trailing /1/1 with current season/episode
+    return details.embedUrl.replace(/\/\d+\/\d+$/, `/${season}/${episode}`);
+  }
+  return details?.embedUrl || "";
+}
+
+export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
+  const [details, setDetails] = useState<MediaDetails | AnimeDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [season, setSeason] = useState(target.season || 1);
+  const [episode, setEpisode] = useState(target.episode || 1);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [seasonsList, setSeasonsList] = useState<Season[]>([]);
+  const [showSeasons, setShowSeasons] = useState(false);
+  const [episodesLoading, setEpisodesLoading] = useState(false);
+
+  const isMovie = target.type === "movie";
+  const isAnime = target.source === "anilist";
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setDetails(null);
+
+    (async () => {
+      try {
+        let url = "";
+        if (isAnime) {
+          const anilistId = target.id.replace(/^anilist-/, "");
+          url = `/api/anime-detail?id=${anilistId}`;
+        } else {
+          const [type, id] = target.id.split("-");
+          url = `/api/details?id=${id}&type=${type}`;
+        }
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setDetails(data);
+        if (data.seasons?.length) {
+          setSeasonsList(data.seasons);
+          const targetSeason =
+            data.seasons.find((s: Season) => s.seasonNumber === (target.season || 1)) ||
+            data.seasons[0];
+          setSeason(targetSeason.seasonNumber);
+        }
+        if (data.episodes?.length) {
+          setEpisodes(data.episodes);
+        }
+        // default episode
+        if (target.episode) setEpisode(target.episode);
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(e?.message || "Failed to load");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [target.id, target.source, target.type]);
+
+  // Load episodes when season changes (for TV)
+  useEffect(() => {
+    if (isMovie || isAnime) return; // anime uses vidsrc directly without episode list
+    if (!details || !seasonsList.length) return;
+    if (episodes.length && episodes[0]?.seasonNumber === season) return;
+
+    setEpisodesLoading(true);
+    setEpisodes([]);
+    (async () => {
+      try {
+        const [type, id] = target.id.split("-");
+        const res = await fetch(`/api/season?id=${id}&season=${season}`);
+        if (res.ok) {
+          const data = await res.json();
+          setEpisodes(data.episodes || []);
+        }
+      } catch {
+        // ignore
+      } finally {
+        setEpisodesLoading(false);
+      }
+    })();
+  }, [season, isMovie, isAnime, details, seasonsList, episodes, target.id]);
+
+  const embedUrl = details
+    ? isMovie
+      ? (details as MediaDetails).embedUrl
+      : buildEmbedUrl(target, details, season, episode)
+    : "";
+
+  function selectSeason(s: Season) {
+    setSeason(s.seasonNumber);
+    setEpisode(1);
+    setShowSeasons(false);
+  }
+
+  function selectEpisode(ep: Episode) {
+    setSeason(ep.seasonNumber);
+    setEpisode(ep.episodeNumber);
+  }
+
+  const title = details?.title || "Loading...";
+  const overview = details?.synopsis || (details as MediaDetails)?.overview || "";
+  const year = details?.year || "";
+  const rating =
+    (details as any)?.score || (details as any)?.rating || 0;
+  const poster = details?.poster || "";
+  const genres = (details as any)?.genres || [];
+
+  return (
+    <div className="min-h-screen pb-16">
+      {/* Back bar */}
+      <div className="sticky top-16 z-20 bg-background/80 backdrop-blur-xl border-b border-border/40 px-4 lg:px-6 py-3 flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm font-semibold text-foreground/80 hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-secondary/60"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+        <div className="flex items-center gap-2">
+          <button className="w-9 h-9 rounded-full bg-secondary/60 border border-border/60 hover:bg-primary/20 hover:border-primary/60 flex items-center justify-center transition-colors" aria-label="Add to library">
+            <Plus className="w-4 h-4" />
+          </button>
+          <button className="w-9 h-9 rounded-full bg-secondary/60 border border-border/60 hover:bg-primary/20 hover:border-primary/60 flex items-center justify-center transition-colors" aria-label="Like">
+            <Heart className="w-4 h-4" />
+          </button>
+          <button className="w-9 h-9 rounded-full bg-secondary/60 border border-border/60 hover:bg-primary/20 hover:border-primary/60 flex items-center justify-center transition-colors" aria-label="Share">
+            <Share2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-32">
+          <Loader2 className="w-10 h-10 text-primary animate-spin pwr-glow" />
+          <p className="text-sm text-muted-foreground mt-4">Loading player...</p>
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-32 px-4">
+          <AlertTriangle className="w-12 h-12 text-destructive" />
+          <p className="text-lg font-bold mt-4">Failed to load content</p>
+          <p className="text-sm text-muted-foreground mt-1">{error}</p>
+          <button
+            onClick={onBack}
+            className="mt-6 px-4 py-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm"
+          >
+            Go back
+          </button>
+        </div>
+      ) : details ? (
+        <div className="px-4 lg:px-6 py-4 lg:py-6 space-y-6">
+          {/* Title row */}
+          <div className="flex items-start gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                {isAnime ? (
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                ) : isMovie ? (
+                  <Film className="w-3.5 h-3.5 text-primary" />
+                ) : (
+                  <Tv className="w-3.5 h-3.5 text-primary" />
+                )}
+                <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                  {isAnime ? "Anime" : isMovie ? "Movie" : "TV Series"}
+                </span>
+              </div>
+              <h1 className="text-2xl md:text-4xl font-black leading-tight pwr-text-glow">
+                {title}
+              </h1>
+            </div>
+          </div>
+
+          {/* Player */}
+          <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border border-border/40 shadow-2xl pwr-border-glow">
+            {embedUrl ? (
+              <iframe
+                key={embedUrl}
+                src={embedUrl}
+                title={title}
+                className="absolute inset-0 w-full h-full"
+                allowFullScreen
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                referrerPolicy="no-referrer"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-center px-4">
+                <div>
+                  <AlertTriangle className="w-10 h-10 text-yellow-400 mx-auto mb-3" />
+                  <p className="text-sm text-foreground/80">
+                    No streaming source available for this title.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Try another title — some content isn&apos;t on vidsrc.to.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Season/Episode selector for TV */}
+          {!isMovie && seasonsList.length > 0 && (
+            <div className="rounded-2xl border border-border/40 bg-card/40 overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-border/40">
+                <h2 className="font-bold flex items-center gap-2">
+                  <Tv className="w-4 h-4 text-primary" />
+                  Episodes
+                </h2>
+                {/* Season selector */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSeasons((s) => !s)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold bg-secondary/60 border border-border/60 hover:border-primary/60 transition-colors"
+                  >
+                    Season {season}
+                    <ChevronDown
+                      className={cn(
+                        "w-3.5 h-3.5 transition-transform",
+                        showSeasons && "rotate-180"
+                      )}
+                    />
+                  </button>
+                  {showSeasons && (
+                    <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30 max-h-72 overflow-y-auto">
+                      {seasonsList.map((s) => (
+                        <button
+                          key={s.id}
+                          onClick={() => selectSeason(s)}
+                          className={cn(
+                            "w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium hover:bg-secondary/80 transition-colors text-left",
+                            s.seasonNumber === season && "bg-primary/15 text-primary"
+                          )}
+                        >
+                          <span className="truncate">{s.name}</span>
+                          <span className="text-[10px] text-muted-foreground ml-2">
+                            {s.episodeCount} eps
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Episode list */}
+              <div className="max-h-96 overflow-y-auto">
+                {episodesLoading ? (
+                  <div className="p-6 flex justify-center">
+                    <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border/30">
+                    {episodes.map((ep) => {
+                      const isActive =
+                        ep.seasonNumber === season &&
+                        ep.episodeNumber === episode;
+                      return (
+                        <button
+                          key={ep.id}
+                          onClick={() => selectEpisode(ep)}
+                          className={cn(
+                            "w-full flex items-center gap-3 p-3 hover:bg-secondary/40 transition-colors text-left",
+                            isActive && "bg-primary/10"
+                          )}
+                        >
+                          <div className="relative w-24 h-14 rounded-md overflow-hidden bg-muted shrink-0">
+                            {ep.still ? (
+                               
+                              <img
+                                src={ep.still}
+                                alt={ep.name}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-muted flex items-center justify-center text-xs text-muted-foreground">
+                                {ep.episodeNumber}
+                              </div>
+                            )}
+                            {isActive && (
+                              <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
+                                <Play className="w-5 h-5 text-white fill-current" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-muted-foreground">
+                                E{ep.episodeNumber}
+                              </span>
+                              <h3 className="text-sm font-semibold truncate">
+                                {ep.name}
+                              </h3>
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                              {ep.overview || "No description available."}
+                            </p>
+                          </div>
+                          {ep.runtime && (
+                            <span className="text-[10px] text-muted-foreground shrink-0 hidden sm:inline">
+                              {ep.runtime}m
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                    {!episodesLoading && episodes.length === 0 && (
+                      <div className="p-6 text-center text-sm text-muted-foreground">
+                        No episode list available. Use the player controls to navigate episodes.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* For anime with episodes count but no seasons list */}
+          {isAnime && !seasonsList.length && (details as AnimeDetails).episodes > 0 && (
+            <div className="rounded-2xl border border-border/40 bg-card/40 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <h2 className="font-bold">Episodes</h2>
+                <span className="text-xs text-muted-foreground">
+                  ({(details as AnimeDetails).episodes} total)
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Select an episode to play. The video player supports full episode navigation.
+              </p>
+              <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
+                {Array.from({
+                  length: Math.min((details as AnimeDetails).episodes, 60),
+                }).map((_, i) => {
+                  const ep = i + 1;
+                  const isActive = ep === episode;
+                  return (
+                    <button
+                      key={ep}
+                      onClick={() => setEpisode(ep)}
+                      className={cn(
+                        "aspect-square rounded-lg text-xs font-bold border transition-all",
+                        isActive
+                          ? "bg-primary text-primary-foreground border-primary pwr-glow"
+                          : "bg-secondary/60 border-border/60 hover:border-primary/60 hover:text-primary"
+                      )}
+                    >
+                      {ep}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Metadata */}
+          <div className="grid md:grid-cols-[1fr_280px] gap-6">
+            <div className="space-y-4">
+              {/* Quick stats */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {rating > 0 && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500/15 text-yellow-300 border border-yellow-400/30">
+                    <Star className="w-3 h-3 fill-current" />
+                    {rating.toFixed(1)}
+                  </span>
+                )}
+                {year && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary/60 border border-border/60">
+                    <Calendar className="w-3 h-3" />
+                    {year}
+                  </span>
+                )}
+                {(details as MediaDetails).runtime && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary/60 border border-border/60">
+                    <Clock className="w-3 h-3" />
+                    {(details as MediaDetails).runtime}m
+                  </span>
+                )}
+                {genres.slice(0, 4).map((g: string) => (
+                  <span
+                    key={g}
+                    className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/15 text-primary border border-primary/30"
+                  >
+                    {g}
+                  </span>
+                ))}
+              </div>
+
+              {/* Overview */}
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  Synopsis
+                </h3>
+                <p className="text-sm md:text-base text-foreground/85 leading-relaxed">
+                  {overview || "No synopsis available."}
+                </p>
+              </div>
+
+              {/* Cast */}
+              {(details as MediaDetails).cast && (details as MediaDetails).cast!.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                    Cast
+                  </h3>
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {(details as MediaDetails).cast!.map((c, i) => (
+                      <div key={i} className="flex flex-col items-center w-20 shrink-0">
+                        <div className="w-16 h-16 rounded-full overflow-hidden bg-muted border border-border/60">
+                          {c.avatar ? (
+                             
+                            <img
+                              src={c.avatar}
+                              alt={c.name}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                              loading="lazy"
+                            />
+                          ) : null}
+                        </div>
+                        <p className="text-[11px] font-semibold text-center mt-1.5 line-clamp-1">
+                          {c.name}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground text-center line-clamp-1">
+                          {c.character}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Studios for anime */}
+              {isAnime && (details as AnimeDetails).studios?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                    Studios
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {(details as AnimeDetails).studios.map((s) => (
+                      <span
+                        key={s}
+                        className="px-3 py-1 rounded-full text-xs font-semibold bg-secondary/60 border border-border/60"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar poster */}
+            <aside className="space-y-4">
+              {poster && (
+                <div className="rounded-2xl overflow-hidden border border-border/40 shadow-xl">
+                  { }
+                  <img
+                    src={poster}
+                    alt={title}
+                    className="w-full"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {(details as AnimeDetails).recommendations?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                    More like this
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(details as AnimeDetails).recommendations.slice(0, 6).map((r: any) => (
+                      <button
+                        key={r.id}
+                        onClick={() => {
+                          if (onPlayItem) {
+                            onPlayItem({
+                              id: r.id,
+                              anilistId: r.anilistId,
+                              title: r.title,
+                              poster: r.poster,
+                              backdrop: r.poster,
+                              overview: "",
+                              year: r.year,
+                              rating: r.score || 0,
+                              type: "anime",
+                              tmdbId: 0,
+                              source: "anilist",
+                              format: "TV",
+                              episodes: r.episodes,
+                              status: "",
+                              genres: [],
+                              studios: [],
+                            } as any);
+                          }
+                        }}
+                        className="group rounded-lg overflow-hidden border border-border/40 hover:border-primary/60 transition-colors text-left pwr-card-hover"
+                      >
+                        <div className="aspect-[2/3] bg-muted">
+                          {r.poster && (
+                             
+                            <img
+                              src={r.poster}
+                              alt={r.title}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                              loading="lazy"
+                            />
+                          )}
+                        </div>
+                        <p className="text-[11px] font-semibold p-1.5 line-clamp-1 group-hover:text-primary transition-colors">
+                          {r.title}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </aside>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
