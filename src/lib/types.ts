@@ -86,7 +86,14 @@ export interface MediaDetails {
   numberOfSeasons?: number;
   numberOfEpisodes?: number;
   embedUrl: string;
+  embedSources?: EmbedSource[];
   cast?: { name: string; character: string; avatar: string }[];
+}
+
+export interface EmbedSource {
+  id: string;
+  label: string;
+  url: string;
 }
 
 export interface AnimeDetails {
@@ -124,6 +131,7 @@ export interface AnimeDetails {
   seasons: any[];
   tmdbId: number | null;
   embedBaseUrl: string | null;
+  embedSources?: EmbedSource[];
   recommendations: any[];
   type: "anime";
 }

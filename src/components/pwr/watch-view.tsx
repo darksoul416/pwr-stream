@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ArrowLeft, Play, Star, Calendar, Clock, Tv, Film, Sparkles, ChevronDown, Loader2, AlertTriangle, Heart, Share2, Plus } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { ArrowLeft, Play, Star, Calendar, Clock, Tv, Film, Sparkles, ChevronDown, Loader2, AlertTriangle, Heart, Share2, Plus, Server } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem } from "@/lib/types";
+import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem, EmbedSource } from "@/lib/types";
 
 interface WatchViewProps {
   target: WatchTarget;
@@ -15,16 +15,39 @@ function isAnimeDetails(d: any): d is AnimeDetails {
   return d && d.type === "anime" && d.anilistId !== undefined;
 }
 
-function buildEmbedUrl(target: WatchTarget, details: any, season: number, episode: number): string {
-  if (target.source === "anilist" && details?.embedBaseUrl) {
-    return `${details.embedBaseUrl}/${season}/${episode}`;
+/**
+ * Build the embed URL for a given source/season/episode.
+ * Different providers have different URL formats:
+ *  - vidlove.cc: /embed/movie/{tmdb} or /embed/tv/{tmdb}/{s}/{e} (PRIMARY)
+ *  - 2embed.cc: /embed/{tmdb} or /embedtv/{tmdb}&s={s}&e={e}
+ *  - vidsrc.to: /embed/movie/{tmdb} or /embed/tv/{tmdb}/{s}/{e}
+ *  - multiembed.mov: /?video_id={tmdb}&tmdb=1[&s={s}&e={e}]
+ */
+function buildEmbedUrl(
+  source: EmbedSource,
+  isMovie: boolean,
+  tmdbId: number,
+  season: number,
+  episode: number
+): string {
+  if (isMovie) {
+    return source.url;
   }
-  // tmdb path
-  if (details?.embedUrl && target.type !== "movie") {
-    // replace trailing /1/1 with current season/episode
-    return details.embedUrl.replace(/\/\d+\/\d+$/, `/${season}/${episode}`);
+  // For TV/anime — replace season/episode in URL
+  const url = source.url;
+  if (source.id === "vidlove") {
+    // vidlove uses /tv/{id}/{s}/{e} path format
+    return url.replace(/\/tv\/\d+\/\d+\/\d+/, `/tv/${tmdbId}/${season}/${episode}`);
   }
-  return details?.embedUrl || "";
+  if (source.id === "2embed") {
+    // 2embed uses &s=1&e=1 query string format
+    return url.replace(/&s=\d+&e=\d+/, `&s=${season}&e=${episode}`);
+  }
+  if (source.id === "multiembed") {
+    return url.replace(/&s=\d+&e=\d+/, `&s=${season}&e=${episode}`);
+  }
+  // vidsrc.to / vidsrc.cc use /tv/{id}/{s}/{e} path
+  return url.replace(/\/tv\/\d+\/\d+\/\d+/, `/tv/${tmdbId}/${season}/${episode}`);
 }
 
 export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
@@ -36,7 +59,9 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [seasonsList, setSeasonsList] = useState<Season[]>([]);
   const [showSeasons, setShowSeasons] = useState(false);
+  const [showServers, setShowServers] = useState(false);
   const [episodesLoading, setEpisodesLoading] = useState(false);
+  const [activeSourceId, setActiveSourceId] = useState<string>("vidlove");
 
   const isMovie = target.type === "movie";
   const isAnime = target.source === "anilist";
@@ -88,9 +113,9 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
     };
   }, [target.id, target.source, target.type]);
 
-  // Load episodes when season changes (for TV)
+  // Load episodes when season changes (for TV and anime with TMDB match)
   useEffect(() => {
-    if (isMovie || isAnime) return; // anime uses vidsrc directly without episode list
+    if (isMovie) return;
     if (!details || !seasonsList.length) return;
     if (episodes.length && episodes[0]?.seasonNumber === season) return;
 
@@ -98,8 +123,15 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
     setEpisodes([]);
     (async () => {
       try {
-        const [type, id] = target.id.split("-");
-        const res = await fetch(`/api/season?id=${id}&season=${season}`);
+        // For anime, use the TMDB id from the details
+        const idToUse = isAnime
+          ? (details as AnimeDetails).tmdbId
+          : target.id.split("-")[1];
+        if (!idToUse) {
+          setEpisodesLoading(false);
+          return;
+        }
+        const res = await fetch(`/api/season?id=${idToUse}&season=${season}`);
         if (res.ok) {
           const data = await res.json();
           setEpisodes(data.episodes || []);
@@ -112,10 +144,29 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
     })();
   }, [season, isMovie, isAnime, details, seasonsList, episodes, target.id]);
 
-  const embedUrl = details
-    ? isMovie
-      ? (details as MediaDetails).embedUrl
-      : buildEmbedUrl(target, details, season, episode)
+  // Build the list of available embed sources
+  const embedSources: EmbedSource[] = useMemo(() => {
+    if (!details) return [];
+    const all = (details as any).embedSources as EmbedSource[] | undefined;
+    if (all && all.length) return all;
+    // Fallback: single source from embedUrl
+    if ((details as any).embedUrl) {
+      return [{ id: "primary", label: "Server 1", url: (details as any).embedUrl }];
+    }
+    return [];
+  }, [details]);
+
+  // Currently active source object
+  const activeSource = embedSources.find((s) => s.id === activeSourceId) || embedSources[0];
+
+  // Get the tmdbId for URL building
+  const tmdbId = isAnime
+    ? (details as AnimeDetails)?.tmdbId || 0
+    : (details as MediaDetails)?.tmdbId || 0;
+
+  // Build the final embed URL for the active source + current season/episode
+  const embedUrl = activeSource
+    ? buildEmbedUrl(activeSource, isMovie, tmdbId, season, episode)
     : "";
 
   function selectSeason(s: Season) {
@@ -212,7 +263,6 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                 allowFullScreen
                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                 referrerPolicy="no-referrer"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-center px-4">
@@ -222,12 +272,42 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                     No streaming source available for this title.
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Try another title — some content isn&apos;t on vidsrc.to.
+                    Try another title — some content isn&apos;t available on 2embed.
                   </p>
                 </div>
               </div>
             )}
           </div>
+
+          {/* Server selector — multiple streaming sources */}
+          {embedSources.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <Server className="w-3.5 h-3.5" />
+                Stream:
+              </span>
+              {embedSources.map((src) => {
+                const active = src.id === activeSource?.id;
+                return (
+                  <button
+                    key={src.id}
+                    onClick={() => setActiveSourceId(src.id)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all",
+                      active
+                        ? "bg-primary/20 text-primary border-primary/50 pwr-border-glow"
+                        : "bg-secondary/50 text-foreground/70 hover:text-foreground border-border/60 hover:border-primary/40"
+                    )}
+                  >
+                    {src.label}
+                  </button>
+                );
+              })}
+              <span className="text-[10px] text-muted-foreground/70 ml-1">
+                If a server doesn&apos;t load, try another ↓
+              </span>
+            </div>
+          )}
 
           {/* Season/Episode selector for TV */}
           {!isMovie && seasonsList.length > 0 && (

@@ -218,8 +218,16 @@ export async function GET(req: NextRequest) {
       seasons,
       tmdbId,
       embedBaseUrl: tmdbId
-        ? `https://vidsrc.to/embed/tv/${tmdbId}`
+        ? `https://player.vidlove.cc/embed/tv/${tmdbId}`
         : null,
+      embedSources: tmdbId
+        ? [
+            { id: "vidlove", label: "Server 1 (Vidlove)", url: `https://player.vidlove.cc/embed/tv/${tmdbId}/1/1` },
+            { id: "2embed", label: "Server 2 (2Embed)", url: `https://www.2embed.cc/embedtv/${tmdbId}&s=1&e=1` },
+            { id: "vidsrc", label: "Server 3 (VidSrc)", url: `https://vidsrc.to/embed/tv/${tmdbId}/1/1` },
+            { id: "multiembed", label: "Server 4 (MultiEmbed)", url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=1&e=1` },
+          ]
+        : [],
       recommendations,
       type: "anime" as const,
     };

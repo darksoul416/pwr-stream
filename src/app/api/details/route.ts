@@ -51,6 +51,7 @@ export interface MediaDetails {
   numberOfEpisodes?: number;
   // streaming
   embedUrl: string;
+  embedSources?: { id: string; label: string; url: string }[];
   // cast
   cast?: { name: string; character: string; avatar: string }[];
 }
@@ -80,13 +81,34 @@ export async function GET(req: NextRequest) {
 
     const data = await res.json();
 
-    // Build embed URL for vidsrc.to
+    // Build embed URLs from multiple providers.
+    // Primary: vidlove.cc — discovered via FMHY (fmhy.net/video).
+    //   - No X-Frame-Options header (embeddable from any origin)
+    //   - Returns a proper video player with auto-play
+    //   - URL format: /embed/movie/{tmdb} | /embed/tv/{tmdb}/{season}/{episode}
+    // Fallbacks:
+    //   - 2embed.cc: /embed/{tmdb} | /embedtv/{tmdb}&s={s}&e={e} (also works in iframe)
+    //   - vidsrc.to: requires Cloudflare Turnstile verification, may fail in iframes
+    //   - multiembed.mov: redirects through streamingnow.mov
     let embedUrl = "";
+    let embedSources: { id: string; label: string; url: string }[] = [];
     if (type === "movie") {
-      embedUrl = `https://vidsrc.to/embed/movie/${id}`;
+      embedUrl = `https://player.vidlove.cc/embed/movie/${id}`;
+      embedSources = [
+        { id: "vidlove", label: "Server 1 (Vidlove)", url: `https://player.vidlove.cc/embed/movie/${id}` },
+        { id: "2embed", label: "Server 2 (2Embed)", url: `https://www.2embed.cc/embed/${id}` },
+        { id: "vidsrc", label: "Server 3 (VidSrc)", url: `https://vidsrc.to/embed/movie/${id}` },
+        { id: "multiembed", label: "Server 4 (MultiEmbed)", url: `https://multiembed.mov/?video_id=${id}&tmdb=1` },
+      ];
     } else {
       // For TV, default to season 1 episode 1 — caller can override via watch query
-      embedUrl = `https://vidsrc.to/embed/tv/${id}/1/1`;
+      embedUrl = `https://player.vidlove.cc/embed/tv/${id}/1/1`;
+      embedSources = [
+        { id: "vidlove", label: "Server 1 (Vidlove)", url: `https://player.vidlove.cc/embed/tv/${id}/1/1` },
+        { id: "2embed", label: "Server 2 (2Embed)", url: `https://www.2embed.cc/embedtv/${id}&s=1&e=1` },
+        { id: "vidsrc", label: "Server 3 (VidSrc)", url: `https://vidsrc.to/embed/tv/${id}/1/1` },
+        { id: "multiembed", label: "Server 4 (MultiEmbed)", url: `https://multiembed.mov/?video_id=${id}&tmdb=1&s=1&e=1` },
+      ];
     }
 
     // For TV, fetch the first season's episodes
@@ -162,6 +184,7 @@ export async function GET(req: NextRequest) {
       numberOfSeasons: data.number_of_seasons,
       numberOfEpisodes: data.number_of_episodes,
       embedUrl,
+      embedSources,
       cast,
     };
 
