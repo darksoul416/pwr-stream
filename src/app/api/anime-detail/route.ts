@@ -212,7 +212,7 @@ export async function GET(req: NextRequest) {
       studios,
       allStudios,
       source: a.source || "",
-      countryOfOrigin: a.countryOfOrigin || "",
+      countryOfOrigin: a.countryOfOrigin || "JP",
       isAdult: a.isAdult || false,
       trailer,
       seasons,
@@ -228,6 +228,24 @@ export async function GET(req: NextRequest) {
             { id: "multiembed", label: "Server 4 (MultiEmbed)", url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=1&e=1` },
           ]
         : [],
+      // Audio track options — anime typically offers Subbed (Japanese) and Dubbed (English)
+      audioTracks: [
+        { id: "sub", label: "Japanese (Sub)", lang: "ja" },
+        { id: "dub", label: "English (Dub)", lang: "en" },
+      ],
+      // Available subtitle languages from AniList external links + sensible defaults
+      subtitleLanguages: [
+        { code: "en", name: "English", englishName: "English" },
+        { code: "es", name: "Español", englishName: "Spanish" },
+        { code: "fr", name: "Français", englishName: "French" },
+        { code: "de", name: "Deutsch", englishName: "German" },
+        { code: "pt", name: "Português", englishName: "Portuguese" },
+        { code: "it", name: "Italiano", englishName: "Italian" },
+        { code: "ru", name: "Русский", englishName: "Russian" },
+        { code: "ar", name: "العربية", englishName: "Arabic" },
+        { code: "zh", name: "中文", englishName: "Chinese" },
+        { code: "ko", name: "한국어", englishName: "Korean" },
+      ],
       recommendations,
       type: "anime" as const,
     };

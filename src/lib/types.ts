@@ -81,12 +81,16 @@ export interface MediaDetails {
   tagline?: string;
   status: string;
   releaseDate: string;
+  originalLanguage?: string;
+  isAnime?: boolean;
   seasons?: Season[];
   episodes?: Episode[];
   numberOfSeasons?: number;
   numberOfEpisodes?: number;
   embedUrl: string;
   embedSources?: EmbedSource[];
+  audioTracks?: AudioTrack[];
+  subtitleLanguages?: SubtitleLanguage[];
   cast?: { name: string; character: string; avatar: string }[];
 }
 
@@ -94,6 +98,18 @@ export interface EmbedSource {
   id: string;
   label: string;
   url: string;
+}
+
+export interface AudioTrack {
+  id: string;
+  label: string;
+  lang: string;
+}
+
+export interface SubtitleLanguage {
+  code: string;
+  name: string;
+  englishName: string;
 }
 
 export interface AnimeDetails {
@@ -132,6 +148,8 @@ export interface AnimeDetails {
   tmdbId: number | null;
   embedBaseUrl: string | null;
   embedSources?: EmbedSource[];
+  audioTracks?: AudioTrack[];
+  subtitleLanguages?: SubtitleLanguage[];
   recommendations: any[];
   type: "anime";
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { ArrowLeft, Play, Star, Calendar, Clock, Tv, Film, Sparkles, ChevronDown, Loader2, AlertTriangle, Heart, Share2, Plus, Server } from "lucide-react";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { ArrowLeft, Play, Star, Calendar, Clock, Tv, Film, Sparkles, ChevronDown, Loader2, AlertTriangle, Heart, Share2, Plus, Server, Languages, Subtitles, Settings, SkipForward, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem, EmbedSource } from "@/lib/types";
+import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem, EmbedSource, AudioTrack, SubtitleLanguage } from "@/lib/types";
 
 interface WatchViewProps {
   target: WatchTarget;
@@ -60,11 +60,60 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
   const [seasonsList, setSeasonsList] = useState<Season[]>([]);
   const [showSeasons, setShowSeasons] = useState(false);
   const [showServers, setShowServers] = useState(false);
+  const [showAudio, setShowAudio] = useState(false);
+  const [showSubtitles, setShowSubtitles] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [episodesLoading, setEpisodesLoading] = useState(false);
   const [activeSourceId, setActiveSourceId] = useState<string>("vidlove");
 
+  // Language & playback settings (persisted to localStorage)
+  const [audioTrackId, setAudioTrackId] = useState<string>("");
+  const [subtitleLang, setSubtitleLang] = useState<string>("en");
+  const [subtitlesOn, setSubtitlesOn] = useState<boolean>(true);
+  const [autoNext, setAutoNext] = useState<boolean>(true);
+  const [quality, setQuality] = useState<string>("auto");
+
   const isMovie = target.type === "movie";
   const isAnime = target.source === "anilist";
+
+  // Load saved settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("pwr-watch-settings");
+      if (saved) {
+        const s = JSON.parse(saved);
+        if (s.audioTrackId) setAudioTrackId(s.audioTrackId);
+        if (s.subtitleLang) setSubtitleLang(s.subtitleLang);
+        if (typeof s.subtitlesOn === "boolean") setSubtitlesOn(s.subtitlesOn);
+        if (typeof s.autoNext === "boolean") setAutoNext(s.autoNext);
+        if (s.quality) setQuality(s.quality);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Save settings to localStorage whenever they change
+  const saveSettings = useCallback(() => {
+    try {
+      localStorage.setItem(
+        "pwr-watch-settings",
+        JSON.stringify({
+          audioTrackId,
+          subtitleLang,
+          subtitlesOn,
+          autoNext,
+          quality,
+        })
+      );
+    } catch {
+      // ignore
+    }
+  }, [audioTrackId, subtitleLang, subtitlesOn, autoNext, quality]);
+
+  useEffect(() => {
+    saveSettings();
+  }, [saveSettings]);
 
   useEffect(() => {
     let cancelled = false;
@@ -165,9 +214,46 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
     : (details as MediaDetails)?.tmdbId || 0;
 
   // Build the final embed URL for the active source + current season/episode
-  const embedUrl = activeSource
-    ? buildEmbedUrl(activeSource, isMovie, tmdbId, season, episode)
-    : "";
+  const embedUrl = useMemo(() => {
+    if (!activeSource) return "";
+    const base = buildEmbedUrl(activeSource, isMovie, tmdbId, season, episode);
+    // Append vidlove query params for additional controls (only vidlove supports these)
+    if (activeSource.id === "vidlove") {
+      const params = new URLSearchParams({
+        autoplay: "true",
+        showNextEpisode: autoNext ? "true" : "false",
+      });
+      if (quality && quality !== "auto") params.set("q", quality);
+      return base + (base.includes("?") ? "&" : "?") + params.toString();
+    }
+    return base;
+  }, [activeSource, isMovie, tmdbId, season, episode, autoNext, quality]);
+
+  // Get audio tracks and subtitle languages from details
+  const audioTracks: AudioTrack[] = useMemo(() => {
+    return (details as any)?.audioTracks || [];
+  }, [details]);
+
+  const subtitleLanguages: SubtitleLanguage[] = useMemo(() => {
+    return (details as any)?.subtitleLanguages || [];
+  }, [details]);
+
+  // Set default audio track when details load
+  useEffect(() => {
+    if (audioTracks.length && !audioTrackId) {
+      setAudioTrackId(audioTracks[0].id);
+    }
+  }, [audioTracks, audioTrackId]);
+
+  // Find next episode info (for auto-play next)
+  const nextEpisodeInfo = useMemo(() => {
+    if (isMovie || !episodes.length) return null;
+    const currentIdx = episodes.findIndex(
+      (e) => e.seasonNumber === season && e.episodeNumber === episode
+    );
+    if (currentIdx === -1 || currentIdx === episodes.length - 1) return null;
+    return episodes[currentIdx + 1];
+  }, [episodes, season, episode, isMovie]);
 
   function selectSeason(s: Season) {
     setSeason(s.seasonNumber);
@@ -279,35 +365,278 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
             )}
           </div>
 
-          {/* Server selector — multiple streaming sources */}
-          {embedSources.length > 1 && (
+          {/* Player controls bar — server, audio, subtitles, settings */}
+          <div className="rounded-2xl border border-border/40 bg-card/40 backdrop-blur-sm p-3 space-y-3">
+            {/* Row 1: Server selector + settings dropdowns */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <Server className="w-3.5 h-3.5" />
-                Stream:
-              </span>
-              {embedSources.map((src) => {
-                const active = src.id === activeSource?.id;
-                return (
+              {/* Server selector */}
+              {embedSources.length > 0 && (
+                <div className="relative">
                   <button
-                    key={src.id}
-                    onClick={() => setActiveSourceId(src.id)}
+                    onClick={() => {
+                      setShowServers((s) => !s);
+                      setShowAudio(false);
+                      setShowSubtitles(false);
+                      setShowSettings(false);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border bg-secondary/50 hover:border-primary/60 transition-colors"
+                  >
+                    <Server className="w-3.5 h-3.5 text-primary" />
+                    Server
+                    <span className="text-primary/80">·</span>
+                    <span className="text-foreground/80">
+                      {activeSource?.label?.split(" ")[0] || "Auto"}
+                    </span>
+                    <ChevronDown className={cn("w-3 h-3 transition-transform", showServers && "rotate-180")} />
+                  </button>
+                  {showServers && (
+                    <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30 max-h-72 overflow-y-auto">
+                      {embedSources.map((src) => (
+                        <button
+                          key={src.id}
+                          onClick={() => {
+                            setActiveSourceId(src.id);
+                            setShowServers(false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
+                            src.id === activeSource?.id && "bg-primary/15 text-primary"
+                          )}
+                        >
+                          <span className="truncate">{src.label}</span>
+                          {src.id === activeSource?.id && (
+                            <span className="text-primary text-[10px]">●</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Audio language / dub selector */}
+              {audioTracks.length > 0 && (
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowAudio((s) => !s);
+                      setShowServers(false);
+                      setShowSubtitles(false);
+                      setShowSettings(false);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border bg-secondary/50 hover:border-primary/60 transition-colors"
+                  >
+                    <Languages className="w-3.5 h-3.5 text-primary" />
+                    Audio
+                    <span className="text-primary/80">·</span>
+                    <span className="text-foreground/80">
+                      {audioTracks.find((t) => t.id === audioTrackId)?.label?.split(" ")[0] || audioTracks[0]?.label?.split(" ")[0] || "Auto"}
+                    </span>
+                    <ChevronDown className={cn("w-3 h-3 transition-transform", showAudio && "rotate-180")} />
+                  </button>
+                  {showAudio && (
+                    <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30 max-h-72 overflow-y-auto">
+                      {audioTracks.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            setAudioTrackId(t.id);
+                            setShowAudio(false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
+                            t.id === audioTrackId && "bg-primary/15 text-primary"
+                          )}
+                        >
+                          <span className="truncate">{t.label}</span>
+                          {t.id === audioTrackId && (
+                            <span className="text-primary text-[10px]">●</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Subtitle selector */}
+              {subtitleLanguages.length > 0 && (
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowSubtitles((s) => !s);
+                      setShowServers(false);
+                      setShowAudio(false);
+                      setShowSettings(false);
+                    }}
                     className={cn(
-                      "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all",
-                      active
-                        ? "bg-primary/20 text-primary border-primary/50 pwr-border-glow"
-                        : "bg-secondary/50 text-foreground/70 hover:text-foreground border-border/60 hover:border-primary/40"
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors",
+                      subtitlesOn
+                        ? "bg-secondary/50 hover:border-primary/60"
+                        : "bg-secondary/30 text-muted-foreground border-border/40"
                     )}
                   >
-                    {src.label}
+                    <Subtitles className="w-3.5 h-3.5 text-primary" />
+                    CC
+                    {subtitlesOn && (
+                      <>
+                        <span className="text-primary/80">·</span>
+                        <span className="text-foreground/80 uppercase">{subtitleLang}</span>
+                      </>
+                    )}
+                    <ChevronDown className={cn("w-3 h-3 transition-transform", showSubtitles && "rotate-180")} />
                   </button>
-                );
-              })}
-              <span className="text-[10px] text-muted-foreground/70 ml-1">
-                If a server doesn&apos;t load, try another ↓
+                  {showSubtitles && (
+                    <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30 max-h-72 overflow-y-auto">
+                      <button
+                        onClick={() => {
+                          setSubtitlesOn(!subtitlesOn);
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
+                          !subtitlesOn && "bg-primary/15 text-primary"
+                        )}
+                      >
+                        <span>{subtitlesOn ? "Subtitles On" : "Subtitles Off"}</span>
+                        <span className="text-primary text-[10px]">{subtitlesOn ? "ON" : "OFF"}</span>
+                      </button>
+                      <div className="border-t border-border/40 my-1" />
+                      {subtitleLanguages.map((l) => (
+                        <button
+                          key={l.code}
+                          onClick={() => {
+                            setSubtitleLang(l.code);
+                            setSubtitlesOn(true);
+                            setShowSubtitles(false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
+                            l.code === subtitleLang && subtitlesOn && "bg-primary/15 text-primary"
+                          )}
+                        >
+                          <span className="truncate">{l.englishName}</span>
+                          <span className="text-muted-foreground text-[10px] uppercase">{l.code}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Settings (quality + auto-next) */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowSettings((s) => !s);
+                    setShowServers(false);
+                    setShowAudio(false);
+                    setShowSubtitles(false);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border bg-secondary/50 hover:border-primary/60 transition-colors"
+                >
+                  <Settings className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-foreground/80 uppercase">{quality}</span>
+                  <ChevronDown className={cn("w-3 h-3 transition-transform", showSettings && "rotate-180")} />
+                </button>
+                {showSettings && (
+                  <div className="absolute left-0 top-full mt-2 w-64 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30">
+                    {/* Quality */}
+                    <div className="px-4 py-2.5 border-b border-border/40">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                        Quality
+                      </p>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {["auto", "1080", "720", "480"].map((q) => (
+                          <button
+                            key={q}
+                            onClick={() => setQuality(q)}
+                            className={cn(
+                              "px-2 py-1.5 rounded-md text-[11px] font-semibold border transition-all uppercase",
+                              quality === q
+                                ? "bg-primary/20 text-primary border-primary/50"
+                                : "bg-secondary/40 text-foreground/70 border-border/40 hover:border-primary/40"
+                            )}
+                          >
+                            {q === "auto" ? "Auto" : `${q}p`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Auto-play next */}
+                    <div className="px-4 py-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold flex items-center gap-1.5">
+                          <SkipForward className="w-3.5 h-3.5 text-primary" />
+                          Auto-play next
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          Automatically play next episode
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setAutoNext(!autoNext)}
+                        className={cn(
+                          "relative w-10 h-6 rounded-full transition-colors",
+                          autoNext ? "bg-primary" : "bg-secondary"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform shadow-md",
+                            autoNext ? "translate-x-4" : "translate-x-0.5"
+                          )}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <span className="text-[10px] text-muted-foreground/70 ml-auto">
+                {activeSource?.id === "vidlove" ? "Plays instantly" : "If a server fails, switch ↑"}
               </span>
             </div>
-          )}
+
+            {/* Audio track info banner (when dub/sub selected for anime) */}
+            {isAnime && audioTracks.find((t) => t.id === audioTrackId) && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
+                <Volume2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span className="text-xs font-semibold text-primary">
+                  {audioTracks.find((t) => t.id === audioTrackId)?.label}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  · Audio language preference saved. Stream source may vary based on availability.
+                </span>
+                {subtitlesOn && (
+                  <span className="ml-auto text-[10px] text-muted-foreground">
+                    Subs: <span className="uppercase text-foreground/80">{subtitleLang}</span>
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Next episode preview */}
+            {nextEpisodeInfo && autoNext && (
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-secondary/40 border border-border/40">
+                <SkipForward className="w-3.5 h-3.5 text-primary shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Up Next
+                  </p>
+                  <p className="text-xs font-semibold truncate">
+                    S{nextEpisodeInfo.seasonNumber}·E{nextEpisodeInfo.episodeNumber}: {nextEpisodeInfo.name}
+                  </p>
+                </div>
+                <button
+                  onClick={() => selectEpisode(nextEpisodeInfo)}
+                  className="px-3 py-1.5 rounded-full bg-primary/20 text-primary border border-primary/40 text-[11px] font-semibold hover:bg-primary/30 transition-colors whitespace-nowrap"
+                >
+                  Play Now
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Season/Episode selector for TV */}
           {!isMovie && seasonsList.length > 0 && (

@@ -44,6 +44,8 @@ export interface MediaDetails {
   tagline?: string;
   status: string;
   releaseDate: string;
+  originalLanguage?: string;
+  isAnime?: boolean;
   // tv
   seasons?: Season[];
   episodes?: Episode[];
@@ -52,6 +54,8 @@ export interface MediaDetails {
   // streaming
   embedUrl: string;
   embedSources?: { id: string; label: string; url: string }[];
+  audioTracks?: { id: string; label: string; lang: string }[];
+  subtitleLanguages?: { code: string; name: string; englishName: string }[];
   // cast
   cast?: { name: string; character: string; avatar: string }[];
 }
@@ -160,6 +164,72 @@ export async function GET(req: NextRequest) {
         avatar: poster(c.profile_path, "w185"),
       }));
 
+    // Fetch available translations to determine audio/subtitle languages
+    let languages: { code: string; name: string; englishName: string }[] = [];
+    try {
+      const transRes = await fetch(
+        `${TMDB_BASE}/${type}/${id}/translations?api_key=${TMDB_API_KEY}`,
+        { next: { revalidate: 3600 } }
+      );
+      if (transRes.ok) {
+        const transData = await transRes.json();
+        const seen = new Set<string>();
+        languages = (transData.translations || [])
+          .filter((t: any) => {
+            const code = t.iso_639_1;
+            if (!code || seen.has(code)) return false;
+            seen.add(code);
+            return true;
+          })
+          .slice(0, 30)
+          .map((t: any) => ({
+            code: t.iso_639_1,
+            name: t.name || t.english_name || t.iso_639_1,
+            englishName: t.english_name || t.name || t.iso_639_1,
+          }));
+      }
+    } catch {
+      // ignore
+    }
+
+    // For anime (TV with animation genre), default subbed = original language, dub = en
+    const isAnime = type === "tv" &&
+      (data.genres || []).some((g: any) => g.id === 16) &&
+      ["ja", "ko"].includes(data.original_language || "");
+
+    // Build audio track options
+    const audioTracks: { id: string; label: string; lang: string }[] = [];
+    if (isAnime) {
+      audioTracks.push(
+        { id: "sub", label: "Japanese (Sub)", lang: "ja" },
+        { id: "dub", label: "English (Dub)", lang: "en" }
+      );
+    } else {
+      // Movies/TV: use original language + English
+      const origLang = data.original_language || "en";
+      if (origLang !== "en") {
+        audioTracks.push(
+          { id: "orig", label: `Original (${origLang.toUpperCase()})`, lang: origLang },
+          { id: "en", label: "English", lang: "en" }
+        );
+      } else {
+        audioTracks.push({ id: "en", label: "English", lang: "en" });
+      }
+      // Add a few common dubs based on available translations
+      for (const lang of ["es", "fr", "de", "pt", "it", "ja", "ko"]) {
+        if (languages.some((l) => l.code === lang) && lang !== origLang) {
+          audioTracks.push({
+            id: lang,
+            label: new Intl.DisplayNames(["en"], { type: "language" }).of(lang) || lang.toUpperCase(),
+            lang,
+          });
+        }
+      }
+    }
+
+    // Available subtitle languages (subset of translations)
+    const subtitleLanguages = languages.slice(0, 20);
+
     const details: MediaDetails = {
       id: `${type}-${id}`,
       tmdbId: Number(id),
@@ -179,12 +249,16 @@ export async function GET(req: NextRequest) {
       tagline: data.tagline,
       status: data.status || "",
       releaseDate: data.release_date || data.first_air_date || "",
+      originalLanguage: data.original_language || "",
+      isAnime,
       seasons,
       episodes,
       numberOfSeasons: data.number_of_seasons,
       numberOfEpisodes: data.number_of_episodes,
       embedUrl,
       embedSources,
+      audioTracks,
+      subtitleLanguages,
       cast,
     };
 
