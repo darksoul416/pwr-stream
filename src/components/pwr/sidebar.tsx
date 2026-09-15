@@ -1,8 +1,9 @@
 "use client";
 
-import { Home, Film, Tv, Sparkles, Search, Heart, Radio, X, Zap } from "lucide-react";
+import { Home, Film, Tv, Sparkles, Search, Heart, Radio, X, Zap, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ViewName } from "@/lib/types";
+import { useWatchlist } from "@/hooks/use-watchlist";
 
 interface SidebarProps {
   view: ViewName;
@@ -19,10 +20,12 @@ const mainNav = [
 ];
 
 const libraryNav = [
+  { id: "mylist" as const, label: "My List", icon: Bookmark },
   { id: "search" as const, label: "Search", icon: Search },
 ];
 
 export function Sidebar({ view, onNavigate, open, onClose }: SidebarProps) {
+  const { count, hydrated } = useWatchlist();
   return (
     <>
       {/* Mobile backdrop */}
@@ -103,6 +106,7 @@ export function Sidebar({ view, onNavigate, open, onClose }: SidebarProps) {
           {libraryNav.map((item) => {
             const Icon = item.icon;
             const active = view === item.id;
+            const showCount = hydrated && item.id === "mylist" && count > 0;
             return (
               <button
                 key={item.id}
@@ -116,6 +120,11 @@ export function Sidebar({ view, onNavigate, open, onClose }: SidebarProps) {
               >
                 <Icon className="w-4.5 h-4.5 shrink-0" />
                 {item.label}
+                {showCount && (
+                  <span className="ml-auto px-1.5 min-w-[1.25rem] h-5 inline-flex items-center justify-center rounded-full text-[10px] font-bold bg-primary text-primary-foreground pwr-glow">
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
                 {active && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full pwr-glow" />
                 )}

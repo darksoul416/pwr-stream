@@ -7,6 +7,7 @@ import { HomeView } from "@/components/pwr/home-view";
 import { BrowseView } from "@/components/pwr/browse-view";
 import { SearchView } from "@/components/pwr/search-view";
 import { WatchView } from "@/components/pwr/watch-view";
+import { MyListView } from "@/components/pwr/my-list-view";
 import type { MediaItem, AnimeItem, ViewName, WatchTarget } from "@/lib/types";
 
 export default function Home() {
@@ -46,6 +47,10 @@ export default function Home() {
           type: (item as MediaItem).type,
           id: (item as MediaItem).id,
         };
+    handleWatchTarget(target);
+  }
+
+  function handleWatchTarget(target: WatchTarget) {
     setWatchTarget(target);
     setView("watch");
     setSidebarOpen(false);
@@ -73,7 +78,11 @@ export default function Home() {
 
         <main className="flex-1">
           {view === "home" && (
-            <HomeView onCardClick={handleCardClick} onSeeAll={handleSeeAll} />
+            <HomeView
+              onCardClick={handleCardClick}
+              onSeeAll={handleSeeAll}
+              onWatchTarget={handleWatchTarget}
+            />
           )}
           {view === "movies" && (
             <BrowseView view="movies" onCardClick={handleCardClick} />
@@ -90,6 +99,9 @@ export default function Home() {
               onCardClick={handleCardClick}
               onClear={() => navigate("home")}
             />
+          )}
+          {view === "mylist" && (
+            <MyListView onCardClick={handleCardClick} />
           )}
           {view === "watch" && watchTarget && (
             <WatchView
@@ -121,7 +133,7 @@ export default function Home() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <span>Data via TMDB, AniList</span>
                 <span className="hidden md:inline">·</span>
-                <span>Streams via vidsrc.to</span>
+                <span>Streams via vidlove.cc</span>
                 <span className="hidden md:inline">·</span>
                 <span className="text-foreground/60">
                   For educational/demo use only
@@ -131,7 +143,7 @@ export default function Home() {
             <p className="mt-6 text-[10px] text-muted-foreground/60 leading-relaxed">
               PWR Stream aggregates publicly available metadata from The Movie
               Database (TMDB) and AniList, and embeds video streams from
-              vidsrc.to. We do not host any content ourselves. All trademarks,
+              vidlove.cc. We do not host any content ourselves. All trademarks,
               logos and content belong to their respective owners.
             </p>
           </div>

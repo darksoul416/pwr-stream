@@ -8,7 +8,7 @@ import type { MediaItem, AnimeItem, ViewName } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface BrowseViewProps {
-  view: Exclude<ViewName, "home" | "search" | "watch">;
+  view: Exclude<ViewName, "home" | "search" | "watch" | "mylist">;
   onCardClick: (item: MediaItem | AnimeItem) => void;
 }
 

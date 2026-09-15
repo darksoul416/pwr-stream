@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { ArrowLeft, Play, Star, Calendar, Clock, Tv, Film, Sparkles, ChevronDown, Loader2, AlertTriangle, Heart, Share2, Plus, Server, Languages, Subtitles, Settings, SkipForward, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem, EmbedSource, AudioTrack, SubtitleLanguage } from "@/lib/types";
+import { WatchProvidersCard } from "./watch-providers-card";
 
 interface WatchViewProps {
   target: WatchTarget;
@@ -902,6 +903,14 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                     referrerPolicy="no-referrer"
                   />
                 </div>
+              )}
+
+              {/* Where to Watch (TMDB watch providers) */}
+              {!isAnime && tmdbId > 0 && (
+                <WatchProvidersCard tmdbId={tmdbId} type={(details as MediaDetails).type} />
+              )}
+              {isAnime && tmdbId > 0 && (
+                <WatchProvidersCard tmdbId={tmdbId} type="tv" />
               )}
 
               {/* Recommendations */}

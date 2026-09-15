@@ -24,6 +24,11 @@ export interface AnimeItem {
   genres: string[];
   studios: string[];
   source: "anilist";
+  nextAiringEpisode?: {
+    episode: number;
+    airingAt: number;
+    timeUntilAiring: number;
+  } | null;
 }
 
 const QUERY_BROWSE = `
@@ -47,6 +52,7 @@ const QUERY_BROWSE = `
         genres
         description(asHtml: false)
         studios(isMain: true) { nodes { name } }
+        nextAiringEpisode { episode airingAt timeUntilAiring }
       }
     }
   }
@@ -71,6 +77,7 @@ const QUERY_SEARCH = `
         genres
         description(asHtml: false)
         studios(isMain: true) { nodes { name } }
+        nextAiringEpisode { episode airingAt timeUntilAiring }
       }
     }
   }
@@ -95,6 +102,7 @@ const QUERY_SEASON = `
         genres
         description(asHtml: false)
         studios(isMain: true) { nodes { name } }
+        nextAiringEpisode { episode airingAt timeUntilAiring }
       }
     }
   }
@@ -128,6 +136,13 @@ function mapAnime(a: any): AnimeItem {
     genres: a.genres || [],
     studios: (a.studios?.nodes || []).map((s: any) => s.name).filter(Boolean),
     source: "anilist" as const,
+    nextAiringEpisode: a.nextAiringEpisode
+      ? {
+          episode: a.nextAiringEpisode.episode,
+          airingAt: a.nextAiringEpisode.airingAt,
+          timeUntilAiring: a.nextAiringEpisode.timeUntilAiring,
+        }
+      : null,
   };
 }
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { Star, Play, Calendar } from "lucide-react";
+import { Star, Play, Calendar, Heart, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useWatchlist } from "@/hooks/use-watchlist";
 import type { MediaItem, AnimeItem } from "@/lib/types";
 
 interface ContentCardProps {
@@ -14,6 +14,16 @@ interface ContentCardProps {
 
 function isAnimeItem(item: any): item is AnimeItem {
   return item.source === "anilist";
+}
+
+function formatCountdown(seconds: number): string {
+  if (seconds <= 0) return "Airing now";
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
 }
 
 function ratingOf(item: MediaItem | AnimeItem): number {
@@ -35,11 +45,14 @@ function typeLabel(item: MediaItem | AnimeItem): string {
 
 export function ContentCard({ item, onClick, index = 0 }: ContentCardProps) {
   const [imgLoaded, setImgLoaded] = useState(false);
+  const { isInWatchlist, toggle, hydrated } = useWatchlist();
   const title = item.title || "Untitled";
   const poster = (item as any).poster || "";
   const rating = ratingOf(item);
   const year = yearOf(item);
   const typeLabelStr = typeLabel(item);
+  const inList = hydrated && isInWatchlist(item.id);
+  const airing = isAnimeItem(item) ? item.nextAiringEpisode : null;
 
   return (
     <button
@@ -72,9 +85,37 @@ export function ContentCard({ item, onClick, index = 0 }: ContentCardProps) {
           {typeLabelStr}
         </div>
 
-        {/* Rating chip */}
+        {/* Watchlist heart button (top-right) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggle(item);
+          }}
+          aria-label={inList ? "Remove from My List" : "Add to My List"}
+          className={cn(
+            "absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-md border transition-all z-10",
+            inList
+              ? "bg-primary text-primary-foreground border-primary pwr-glow"
+              : "bg-black/70 text-white/80 border-white/10 hover:bg-primary/80 hover:text-primary-foreground opacity-0 group-hover:opacity-100"
+          )}
+        >
+          <Heart className={cn("w-3.5 h-3.5", inList && "fill-current")} />
+        </button>
+
+        {/* Airing countdown badge (below type, left) */}
+        {airing && (
+          <div className="absolute top-10 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-primary/80 backdrop-blur-md text-primary-foreground border border-primary/40 pwr-glow">
+            <Clock className="w-2.5 h-2.5" />
+            EP {airing.episode} · {formatCountdown(airing.timeUntilAiring)}
+          </div>
+        )}
+
+        {/* Rating chip (move to bottom-left if airing, else top-right under heart) */}
         {rating > 0 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/70 backdrop-blur-md text-yellow-300 border border-yellow-400/30">
+          <div className={cn(
+            "absolute flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/70 backdrop-blur-md text-yellow-300 border border-yellow-400/30",
+            airing ? "bottom-11 left-2" : "top-10 left-2"
+          )}>
             <Star className="w-2.5 h-2.5 fill-current" />
             {rating.toFixed(1)}
           </div>

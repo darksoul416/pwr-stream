@@ -1,21 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { HeroBanner } from "./hero-banner";
 import { ContentRow } from "./content-row";
-import type { MediaItem, AnimeItem, WatchTarget, ViewName } from "@/lib/types";
+import { ComingSoonRow } from "./coming-soon-row";
+import type { MediaItem, AnimeItem, ComingSoonItem, WatchTarget, ViewName } from "@/lib/types";
 
 interface HomeViewProps {
   onCardClick: (item: MediaItem | AnimeItem) => void;
-  onSeeAll: (view: Exclude<ViewName, "home" | "search" | "watch">) => void;
+  onSeeAll: (view: Exclude<ViewName, "home" | "search" | "watch" | "mylist">) => void;
+  onWatchTarget?: (target: WatchTarget) => void;
 }
 
-export function HomeView({ onCardClick, onSeeAll }: HomeViewProps) {
+export function HomeView({ onCardClick, onSeeAll, onWatchTarget }: HomeViewProps) {
   const [trending, setTrending] = useState<MediaItem[]>([]);
   const [movies, setMovies] = useState<MediaItem[]>([]);
   const [tv, setTv] = useState<MediaItem[]>([]);
   const [anime, setAnime] = useState<AnimeItem[]>([]);
+  const [comingSoon, setComingSoon] = useState<ComingSoonItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -26,11 +29,12 @@ export function HomeView({ onCardClick, onSeeAll }: HomeViewProps) {
 
     (async () => {
       try {
-        const [t, m, tv2, a] = await Promise.all([
+        const [t, m, tv2, a, cs] = await Promise.all([
           fetch("/api/browse?category=trending&page=1").then((r) => r.json()),
           fetch("/api/browse?category=movies&sort=popular&page=1").then((r) => r.json()),
           fetch("/api/browse?category=tv&sort=popular&page=1").then((r) => r.json()),
           fetch("/api/anilist?category=top&limit=18").then((r) => r.json()),
+          fetch("/api/coming-soon?type=all").then((r) => r.json()),
         ]);
 
         if (cancelled) return;
@@ -38,6 +42,7 @@ export function HomeView({ onCardClick, onSeeAll }: HomeViewProps) {
         setMovies(m.items || []);
         setTv(tv2.items || []);
         setAnime(a.items || []);
+        setComingSoon(cs.items || []);
       } catch (e) {
         if (!cancelled) setError(true);
       } finally {
@@ -82,12 +87,25 @@ export function HomeView({ onCardClick, onSeeAll }: HomeViewProps) {
   // Top 6 trending for hero
   const heroItems = trending.slice(0, 6);
 
+  function handleCardClick(item: MediaItem | AnimeItem) {
+    onCardClick(item);
+  }
+
+  function handleComingSoonClick(target: WatchTarget) {
+    onWatchTarget?.(target);
+  }
+
   return (
     <div className="px-4 lg:px-6 py-6">
       <HeroBanner
         items={heroItems}
-        onPlay={(item) => onCardClick(item)}
-        onInfo={(item) => onCardClick(item)}
+        onPlay={(item) => handleCardClick(item)}
+        onInfo={(item) => handleCardClick(item)}
+      />
+
+      <ComingSoonRow
+        items={comingSoon.slice(0, 18)}
+        onCardClick={handleComingSoonClick}
       />
 
       <ContentRow

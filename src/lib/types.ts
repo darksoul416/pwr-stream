@@ -7,7 +7,8 @@ export type ViewName =
   | "tv"
   | "anime"
   | "search"
-  | "watch";
+  | "watch"
+  | "mylist";
 
 export interface MediaItem {
   id: string;
@@ -43,6 +44,11 @@ export interface AnimeItem {
   genres: string[];
   studios: string[];
   source: "anilist";
+  nextAiringEpisode?: {
+    episode: number;
+    airingAt: number;
+    timeUntilAiring: number;
+  } | null;
 }
 
 export interface Episode {
@@ -161,4 +167,51 @@ export interface WatchTarget {
   // optional preset for season/episode (TV/anime)
   season?: number;
   episode?: number;
+}
+
+// Coming Soon item (upcoming movies + airing TV)
+export interface ComingSoonItem {
+  id: string;
+  tmdbId: number;
+  title: string;
+  poster: string;
+  backdrop: string;
+  overview: string;
+  releaseDate: string;
+  daysUntil: number;
+  type: "movie" | "tv";
+  rating: number;
+}
+
+// Watch provider (TMDB watch/providers)
+export interface WatchProvider {
+  id: number;
+  name: string;
+  logo: string;
+  priority: number;
+}
+
+export interface RegionProviders {
+  region: string;
+  link: string;
+  flatrate: WatchProvider[]; // subscription
+  rent: WatchProvider[];
+  buy: WatchProvider[];
+  free: WatchProvider[]; // free w/ ads
+  ads: WatchProvider[];
+}
+
+// Watchlist item (localStorage)
+export interface WatchlistItem {
+  id: string; // "movie-123" | "tv-456" | "anilist-789"
+  title: string;
+  poster: string;
+  backdrop: string;
+  year: string;
+  rating: number;
+  type: MediaType;
+  source: "tmdb" | "anilist";
+  tmdbId?: number;
+  anilistId?: number;
+  addedAt: number;
 }
