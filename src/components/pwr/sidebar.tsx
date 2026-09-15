@@ -4,6 +4,7 @@ import { Home, Film, Tv, Sparkles, Search, Heart, Radio, X, Zap, Bookmark } from
 import { cn } from "@/lib/utils";
 import type { ViewName } from "@/lib/types";
 import { useWatchlist } from "@/hooks/use-watchlist";
+import { InstallAppButton } from "./install-button";
 
 interface SidebarProps {
   view: ViewName;
@@ -164,9 +165,14 @@ export function Sidebar({ view, onNavigate, open, onClose }: SidebarProps) {
           </div>
 
           <p className="text-[10px] text-muted-foreground/60 text-center mt-3 px-2 leading-relaxed">
-            Streams via vidsrc.to & AniList.<br/>
+            Streams via vidlove.cc &amp; AniList.<br/>
             For educational purposes only.
           </p>
+
+          {/* Install App button */}
+          <div className="mt-3">
+            <InstallAppButton variant="full" />
+          </div>
         </div>
       </aside>
     </>

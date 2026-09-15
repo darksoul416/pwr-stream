@@ -8,6 +8,7 @@ import { BrowseView } from "@/components/pwr/browse-view";
 import { SearchView } from "@/components/pwr/search-view";
 import { WatchView } from "@/components/pwr/watch-view";
 import { MyListView } from "@/components/pwr/my-list-view";
+import { InstallAppButton } from "@/components/pwr/install-button";
 import type { MediaItem, AnimeItem, ViewName, WatchTarget } from "@/lib/types";
 
 export default function Home() {
@@ -111,6 +112,9 @@ export default function Home() {
             />
           )}
         </main>
+
+        {/* Mobile install banner (shows once, dismissible) */}
+        <InstallAppButton variant="banner" />
 
         {/* Footer */}
         <footer className="mt-auto border-t border-border/40 bg-sidebar/40 backdrop-blur-sm">
