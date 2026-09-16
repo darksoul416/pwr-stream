@@ -6,6 +6,8 @@ import type { ViewName } from "@/lib/types";
 import { useWatchlist } from "@/hooks/use-watchlist";
 import { InstallAppButton } from "./install-button";
 import { ThemeSwitcher } from "./theme-switcher";
+import { TipJar } from "./tip-jar";
+import { PremiumBanner } from "./premium-banner";
 
 interface SidebarProps {
   view: ViewName;
@@ -177,8 +179,18 @@ export function Sidebar({ view, onNavigate, open, onClose }: SidebarProps) {
             <ThemeSwitcher />
           </div>
 
-          {/* Install App button */}
+          {/* Premium upsell */}
           <div className="mt-3">
+            <PremiumBanner variant="compact" />
+          </div>
+
+          {/* Tip jar */}
+          <div className="mt-2">
+            <TipJar variant="compact" />
+          </div>
+
+          {/* Install App button */}
+          <div className="mt-2">
             <InstallAppButton variant="full" />
           </div>
         </div>

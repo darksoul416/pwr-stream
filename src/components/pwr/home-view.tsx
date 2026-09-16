@@ -6,6 +6,7 @@ import { HeroBanner } from "./hero-banner";
 import { ContentRow } from "./content-row";
 import { ComingSoonRow } from "./coming-soon-row";
 import { ContinueWatchingRow } from "./continue-watching-row";
+import { AdSlot } from "./ad-slot";
 import { useContinueWatching, continueItemToTarget } from "@/hooks/use-continue-watching";
 import type { MediaItem, AnimeItem, ComingSoonItem, WatchTarget, ViewName } from "@/lib/types";
 
@@ -118,6 +119,9 @@ export function HomeView({ onCardClick, onSeeAll, onWatchTarget }: HomeViewProps
         items={comingSoon.slice(0, 18)}
         onCardClick={handleComingSoonClick}
       />
+
+      {/* Ad slot (only shows when ads are enabled in monetization config) */}
+      <AdSlot currentView="home" format="horizontal" className="mb-8" />
 
       <ContentRow
         title="Trending Now"

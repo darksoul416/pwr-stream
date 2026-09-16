@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ExternalLink, Tv, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RegionProviders, WatchProvider } from "@/lib/types";
+import { addAmazonAffiliate, addJustWatchAffiliate } from "@/lib/monetization";
 
 interface WatchProvidersCardProps {
   tmdbId: number;
@@ -123,12 +124,18 @@ export function WatchProvidersCard({ tmdbId, type }: WatchProvidersCardProps) {
               {group.kind}
             </p>
             <div className="flex flex-wrap gap-2">
-              {group.providers.map((p) => (
+              {group.providers.map((p) => {
+                // Apply affiliate tags to provider links
+                let link = active.link || "";
+                if (p.name.toLowerCase().includes("amazon")) {
+                  link = addAmazonAffiliate(link);
+                }
+                return (
                 <a
                   key={`${group.kind}-${p.id}`}
-                  href={active.link}
+                  href={link}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="noopener noreferrer sponsored"
                   className="group flex items-center gap-2 px-2 py-1 rounded-lg bg-secondary/40 border border-border/40 hover:border-primary/60 hover:bg-primary/10 transition-all"
                   title={p.name}
                 >
@@ -150,7 +157,8 @@ export function WatchProvidersCard({ tmdbId, type }: WatchProvidersCardProps) {
                   </span>
                   <ExternalLink className="w-2.5 h-2.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </a>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
@@ -158,9 +166,9 @@ export function WatchProvidersCard({ tmdbId, type }: WatchProvidersCardProps) {
 
       {active.link && (
         <a
-          href={active.link}
+          href={addJustWatchAffiliate(active.link)}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer sponsored"
           className="mt-3 block text-center text-[10px] text-muted-foreground hover:text-primary transition-colors"
         >
           View all options on JustWatch →
