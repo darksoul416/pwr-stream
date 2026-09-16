@@ -8,7 +8,9 @@ export type ViewName =
   | "anime"
   | "search"
   | "watch"
-  | "mylist";
+  | "mylist"
+  | "history"
+  | "genres";
 
 export interface MediaItem {
   id: string;
@@ -214,4 +216,23 @@ export interface WatchlistItem {
   tmdbId?: number;
   anilistId?: number;
   addedAt: number;
+}
+
+// Continue Watching item (localStorage)
+export interface ContinueWatchingItem {
+  id: string;
+  title: string;
+  poster: string;
+  backdrop: string;
+  year: string;
+  type: MediaType;
+  source: "tmdb" | "anilist";
+  tmdbId?: number;
+  anilistId?: number;
+  season?: number;
+  episode?: number;
+  progress: number; // 0-100
+  duration: number; // seconds
+  position: number; // seconds
+  updatedAt: number;
 }

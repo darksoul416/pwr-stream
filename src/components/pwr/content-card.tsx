@@ -55,9 +55,9 @@ export function ContentCard({ item, onClick, index = 0 }: ContentCardProps) {
   const airing = isAnimeItem(item) ? item.nextAiringEpisode : null;
 
   return (
-    <button
+    <div
       onClick={() => onClick?.(item)}
-      className="group relative flex flex-col text-left rounded-xl overflow-hidden bg-card/40 border border-border/40 hover:border-primary/60 pwr-card-hover focus:outline-none focus:ring-2 focus:ring-primary/60 transition-all"
+      className="group relative flex flex-col text-left rounded-xl overflow-hidden bg-card/40 border border-border/40 hover:border-primary/60 pwr-card-hover focus:outline-none focus:ring-2 focus:ring-primary/60 transition-all cursor-pointer"
       style={{ animationDelay: `${Math.min(index * 30, 600)}ms` }}
     >
       {/* Poster */}
@@ -146,7 +146,7 @@ export function ContentCard({ item, onClick, index = 0 }: ContentCardProps) {
           </p>
         )}
       </div>
-    </button>
+    </div>
   );
 }
 

@@ -109,6 +109,47 @@
   --neon-pink: oklch(0.72 0.27 350);
 }
 
+/* Light mode — applied via <html class="light"> */
+/* Use html.light for higher specificity than :root */
+html.light {
+  --background: oklch(0.98 0.005 280);
+  --foreground: oklch(0.15 0.01 280);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.01 280);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 280);
+  --primary: oklch(0.55 0.28 295);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.01 280);
+  --secondary-foreground: oklch(0.15 0.01 280);
+  --muted: oklch(0.95 0.01 280);
+  --muted-foreground: oklch(0.45 0.02 280);
+  --accent: oklch(0.55 0.28 295);
+  --accent-foreground: oklch(0.99 0 0);
+  --destructive: oklch(0.55 0.24 25);
+  --border: oklch(0.88 0.01 280 / 80%);
+  --input: oklch(0.95 0.01 280);
+  --ring: oklch(0.55 0.28 295);
+  --neon: oklch(0.60 0.28 295);
+  --neon-cyan: oklch(0.62 0.18 195);
+  --neon-pink: oklch(0.62 0.27 350);
+  --sidebar: oklch(0.97 0.005 280);
+  --sidebar-foreground: oklch(0.15 0.01 280);
+  --sidebar-primary: oklch(0.55 0.28 295);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.93 0.01 280);
+  --sidebar-accent-foreground: oklch(0.15 0.01 280);
+  --sidebar-border: oklch(0.88 0.01 280 / 80%);
+  --sidebar-ring: oklch(0.55 0.28 295);
+}
+
+/* Also override the body background gradient in light mode */
+html.light body {
+  background-image:
+    radial-gradient(circle at 15% 10%, oklch(0.85 0.05 295 / 0.25), transparent 45%),
+    radial-gradient(circle at 85% 90%, oklch(0.85 0.05 195 / 0.15), transparent 45%);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

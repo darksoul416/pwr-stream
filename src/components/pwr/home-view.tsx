@@ -5,11 +5,13 @@ import { AlertTriangle } from "lucide-react";
 import { HeroBanner } from "./hero-banner";
 import { ContentRow } from "./content-row";
 import { ComingSoonRow } from "./coming-soon-row";
+import { ContinueWatchingRow } from "./continue-watching-row";
+import { useContinueWatching, continueItemToTarget } from "@/hooks/use-continue-watching";
 import type { MediaItem, AnimeItem, ComingSoonItem, WatchTarget, ViewName } from "@/lib/types";
 
 interface HomeViewProps {
   onCardClick: (item: MediaItem | AnimeItem) => void;
-  onSeeAll: (view: Exclude<ViewName, "home" | "search" | "watch" | "mylist">) => void;
+  onSeeAll: (view: Exclude<ViewName, "home" | "search" | "watch" | "mylist" | "history" | "genres">) => void;
   onWatchTarget?: (target: WatchTarget) => void;
 }
 
@@ -21,6 +23,7 @@ export function HomeView({ onCardClick, onSeeAll, onWatchTarget }: HomeViewProps
   const [comingSoon, setComingSoon] = useState<ComingSoonItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { items: continueItems, remove: removeContinue, hydrated: continueHydrated } = useContinueWatching();
 
   useEffect(() => {
     let cancelled = false;
@@ -101,6 +104,14 @@ export function HomeView({ onCardClick, onSeeAll, onWatchTarget }: HomeViewProps
         items={heroItems}
         onPlay={(item) => handleCardClick(item)}
         onInfo={(item) => handleCardClick(item)}
+      />
+
+      {/* Continue Watching row (only shows if there's history) */}
+      <ContinueWatchingRow
+        items={continueItems.slice(0, 10)}
+        onResume={(target) => onWatchTarget?.(target)}
+        onRemove={removeContinue}
+        loading={!continueHydrated}
       />
 
       <ComingSoonRow

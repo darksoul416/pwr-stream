@@ -27,6 +27,16 @@ export function TopBar({ onMenuClick, onSearch, onLogoClick }: TopBarProps) {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  // Listen for the global "focus search" event (from keyboard shortcuts)
+  useEffect(() => {
+    function onFocusSearch() {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+    window.addEventListener("pwr-focus-search", onFocusSearch);
+    return () => window.removeEventListener("pwr-focus-search", onFocusSearch);
+  }, []);
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (q.trim()) {

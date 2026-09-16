@@ -1,10 +1,11 @@
 "use client";
 
-import { Home, Film, Tv, Sparkles, Search, Heart, Radio, X, Zap, Bookmark } from "lucide-react";
+import { Home, Film, Tv, Sparkles, Search, Heart, Radio, X, Zap, Bookmark, History, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ViewName } from "@/lib/types";
 import { useWatchlist } from "@/hooks/use-watchlist";
 import { InstallAppButton } from "./install-button";
+import { ThemeSwitcher } from "./theme-switcher";
 
 interface SidebarProps {
   view: ViewName;
@@ -22,6 +23,8 @@ const mainNav = [
 
 const libraryNav = [
   { id: "mylist" as const, label: "My List", icon: Bookmark },
+  { id: "history" as const, label: "History", icon: History },
+  { id: "genres" as const, label: "Genres", icon: Tag },
   { id: "search" as const, label: "Search", icon: Search },
 ];
 
@@ -168,6 +171,11 @@ export function Sidebar({ view, onNavigate, open, onClose }: SidebarProps) {
             Streams via vidlove.cc &amp; AniList.<br/>
             For educational purposes only.
           </p>
+
+          {/* Theme switcher */}
+          <div className="mt-3 flex justify-center">
+            <ThemeSwitcher />
+          </div>
 
           {/* Install App button */}
           <div className="mt-3">

@@ -5,6 +5,7 @@ import { ArrowLeft, Play, Star, Calendar, Clock, Tv, Film, Sparkles, ChevronDown
 import { cn } from "@/lib/utils";
 import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem, EmbedSource, AudioTrack, SubtitleLanguage } from "@/lib/types";
 import { WatchProvidersCard } from "./watch-providers-card";
+import { WatchPartyPanel } from "./watch-party-panel";
 
 interface WatchViewProps {
   target: WatchTarget;
@@ -912,6 +913,17 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
               {isAnime && tmdbId > 0 && (
                 <WatchProvidersCard tmdbId={tmdbId} type="tv" />
               )}
+
+              {/* Watch Party (real-time sync with friends) */}
+              <WatchPartyPanel
+                title={title}
+                poster={poster}
+                type={isAnime ? "anime" : (details as MediaDetails).type}
+                tmdbId={tmdbId || undefined}
+                anilistId={isAnime ? (details as AnimeDetails).anilistId : undefined}
+                season={season}
+                episode={episode}
+              />
 
               {/* Recommendations */}
               {(details as AnimeDetails).recommendations?.length > 0 && (
