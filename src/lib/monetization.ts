@@ -16,17 +16,17 @@
 export const MONETIZATION = {
   // Affiliate program IDs
   affiliates: {
-    // Amazon Associates — replace with your tag
-    amazonTag: "pwrstream-20",
+    // Amazon Associates — your tag
+    amazonTag: "gokusan20-21",
     // JustWatch affiliate (if enrolled)
-    justWatchPartner: "pwrstream",
+    justWatchPartner: "gokusan20-21",
   },
 
   // Tip jar / donation links
   tips: {
-    buyMeCoffee: "https://www.buymeacoffee.com/pwrstream",
-    koFi: "https://ko-fi.com/pwrstream",
-    patreon: "https://www.patreon.com/pwrstream",
+    buyMeCoffee: "https://www.buymeacoffee.com/gsaiyan710x",
+    koFi: "https://ko-fi.com/gsaiyan710x",
+    patreon: "",
     // Crypto wallets (optional)
     btc: "",
     eth: "",
