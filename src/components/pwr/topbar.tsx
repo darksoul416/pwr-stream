@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Menu, Search, X, Command, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LoginButton } from "@/components/auth/login-button";
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -117,6 +118,9 @@ export function TopBar({ onMenuClick, onSearch, onLogoClick }: TopBarProps) {
           </span>
           LIVE
         </div>
+
+        {/* Login button */}
+        <LoginButton />
       </div>
     </header>
   );

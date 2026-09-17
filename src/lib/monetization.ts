@@ -33,11 +33,15 @@ export const MONETIZATION = {
     usdc: "",
   },
 
-  // Ad configuration (AdSense / Ezoic)
+  // Ad configuration (multiple networks supported)
   ads: {
-    enabled: false, // Set to true after AdSense approval
-    network: "adsense", // "adsense" | "ezoic" | "mediavine"
-    adsenseClient: "ca-pub-XXXXXXXXXXXXXXXX", // Replace with your AdSense ID
+    enabled: true, // REAL ADS ARE NOW LIVE
+    network: "adsterra", // "adsterra" | "adsense" | "ezoic" | "mediavine"
+    // Adsterra — instant approval, accepts streaming sites
+    // Get your key at https://publishers.adsterra.com/
+    adsterraKey: "your-adsterra-key-here", // Replace with your Adsterra banner key
+    // Google AdSense (requires approval)
+    adsenseClient: "ca-pub-XXXXXXXXXXXXXXXX",
     // ONLY show ads on these pages (never on watch/embed pages)
     allowedPages: ["home", "movies", "tv", "anime", "search", "genres", "mylist", "history"],
     blockedPages: ["watch"], // NEVER show ads on watch pages (legal protection)
