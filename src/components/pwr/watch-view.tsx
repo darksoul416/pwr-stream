@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem, EmbedSource, AudioTrack, SubtitleLanguage } from "@/lib/types";
 import { WatchProvidersCard } from "./watch-providers-card";
 import { WatchPartyPanel } from "./watch-party-panel";
+import { GiscusCommentsPlaceholder } from "./giscus-comments";
 
 interface WatchViewProps {
   target: WatchTarget;
@@ -979,6 +980,9 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                   </div>
                 </div>
               )}
+
+              {/* Community discussion (Giscus - GitHub Discussions) */}
+              <GiscusCommentsPlaceholder />
             </aside>
           </div>
         </div>

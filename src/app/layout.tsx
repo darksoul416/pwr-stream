@@ -114,6 +114,51 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        {/* JSON-LD Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "PWR Stream",
+              url: "https://pwr-stream.vercel.app",
+              description:
+                "Stream anime, movies and TV shows free. YouTube-style streaming platform with PWR flair.",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate:
+                    "https://pwr-stream.vercel.app/?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
+        {/* Cloudflare Web Analytics (privacy-friendly, no cookies, free) */}
+        {/* Get your beacon ID at https://www.cloudflare.com/web-analytics/ */}
+        {process.env.NEXT_PUBLIC_CF_ANALYTICS && (
+          <script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={`{"token": "${process.env.NEXT_PUBLIC_CF_ANALYTICS}"}`}
+          />
+        )}
+        {/* Microsoft Clarity (free session replay + heatmaps) */}
+        {/* Get your project ID at https://clarity.microsoft.com/ */}
+        {process.env.NEXT_PUBLIC_CLARITY_ID && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+              })(window, document, "clarity", "script", "${process.env.NEXT_PUBLIC_CLARITY_ID}");`,
+            }}
+          />
+        )}
         {children}
         <Toaster />
         <ServiceWorkerRegister />
