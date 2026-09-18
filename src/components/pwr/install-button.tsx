@@ -126,7 +126,7 @@ export function InstallAppButton({
             <Smartphone className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold mb-0.5">Install PWR Stream</h3>
+            <h3 className="text-sm font-bold mb-0.5">Install Netflix Clone</h3>
             <p className="text-xs text-muted-foreground mb-3">
               {iosPrompt
                 ? "Tap the Share button, then 'Add to Home Screen' for the full app experience."
@@ -163,7 +163,7 @@ export function InstallAppButton({
         )}
       >
         <Download className="w-4 h-4" />
-        Install PWR Stream App
+        Install Netflix Clone App
       </button>
     );
   }
@@ -177,7 +177,7 @@ export function InstallAppButton({
         "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/40 hover:bg-primary/30 transition-all",
         className
       )}
-      title="Install PWR Stream as an app"
+      title="Install Netflix Clone as an app"
     >
       <Download className="w-3.5 h-3.5" />
       Install App

@@ -62,10 +62,10 @@ export function TopBar({ onMenuClick, onSearch, onLogoClick }: TopBarProps) {
         <button
           onClick={onLogoClick}
           className="lg:hidden flex items-center gap-2 group"
-          aria-label="PWR Stream home"
+          aria-label="Netflix Clone home"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-neon-pink flex items-center justify-center pwr-glow">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center pwr-glow">
+            <span className="text-sm font-black text-white">N</span>
           </div>
         </button>
 

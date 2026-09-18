@@ -1,5 +1,5 @@
 /**
- * PWR Stream Monetization Configuration
+ * Netflix Clone Monetization Configuration
  *
  * LEGAL DISCLAIMER:
  * This platform embeds streams from third-party providers (vidlove.cc).
@@ -25,7 +25,7 @@ export const MONETIZATION = {
   // Tip jar / donation links
   tips: {
     buyMeCoffee: "https://www.buymeacoffee.com/gsaiyan710x",
-    koFi: "https://ko-fi.com/gsaiyan710x",
+    koFi: "https://ko-fi.com/gokusaiyan62166",
     patreon: "",
     // Crypto wallets (optional)
     btc: "",

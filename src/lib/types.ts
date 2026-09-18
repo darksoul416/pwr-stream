@@ -1,4 +1,4 @@
-// Shared types for PWR Stream app
+// Shared types for Netflix Clone app
 
 export type MediaType = "movie" | "tv" | "anime";
 export type ViewName =

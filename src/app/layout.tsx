@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://pwr-stream.example.com"),
-  title: "PWR Stream — Watch Anime, Movies & TV",
+  metadataBase: new URL("https://netflix-clone.example.com"),
+  title: "Netflix Clone — Watch Anime, Movies & TV",
   description:
     "Stream anime, movies and TV shows in one place. A YouTube-style streaming platform with PWR flair.",
   keywords: [
@@ -30,12 +30,12 @@ export const metadata: Metadata = {
     "free movies",
     "free anime",
   ],
-  authors: [{ name: "PWR Stream" }],
-  applicationName: "PWR Stream",
+  authors: [{ name: "Netflix Clone" }],
+  applicationName: "Netflix Clone",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "PWR Stream",
+    title: "Netflix Clone",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {
@@ -53,16 +53,16 @@ export const metadata: Metadata = {
     shortcut: ["/icon.svg"],
   },
   openGraph: {
-    title: "PWR Stream — Watch Anime, Movies & TV",
+    title: "Netflix Clone — Watch Anime, Movies & TV",
     description:
       "Stream anime, movies and TV shows free. YouTube-style streaming platform.",
     type: "website",
-    siteName: "PWR Stream",
+    siteName: "Netflix Clone",
     images: ["/icons/icon-512.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PWR Stream",
+    title: "Netflix Clone",
     description: "Stream anime, movies and TV shows free.",
     images: ["/icons/icon-512.png"],
   },
@@ -94,14 +94,14 @@ export default function RootLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
-        <meta name="apple-mobile-web-app-title" content="PWR Stream" />
+        <meta name="apple-mobile-web-app-title" content="Netflix Clone" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
           content="default"
         />
         {/* Android Chrome */}
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="PWR Stream" />
+        <meta name="application-name" content="Netflix Clone" />
         {/* Safe area insets for notched phones */}
         <style>{`
           html {
@@ -122,8 +122,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "PWR Stream",
-              url: "https://pwr-stream.vercel.app",
+              name: "Netflix Clone",
+              url: "https://netflix-clone.vercel.app",
               description:
                 "Stream anime, movies and TV shows free. YouTube-style streaming platform with PWR flair.",
               potentialAction: {
@@ -131,7 +131,7 @@ export default function RootLayout({
                 target: {
                   "@type": "EntryPoint",
                   urlTemplate:
-                    "https://pwr-stream.vercel.app/?q={search_term_string}",
+                    "https://netflix-clone.vercel.app/?q={search_term_string}",
                 },
                 "query-input": "required name=search_term_string",
               },

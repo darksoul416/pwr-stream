@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/"],
     },
-    sitemap: "https://pwr-stream.vercel.app/sitemap.xml",
-    host: "https://pwr-stream.vercel.app",
+    sitemap: "https://netflix-clone.vercel.app/sitemap.xml",
+    host: "https://netflix-clone.vercel.app",
   };
 }

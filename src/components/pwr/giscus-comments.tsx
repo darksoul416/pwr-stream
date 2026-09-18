@@ -21,7 +21,7 @@ interface GiscusCommentsProps {
  *
  * Setup (one-time):
  * 1. Go to https://giscus.app
- * 2. Enter your GitHub repo (darksoul416/pwr-stream)
+ * 2. Enter your GitHub repo (darksoul416/netflix-clone)
  * 3. Enable GitHub Discussions on your repo
  * 4. Pick a category (e.g., "General Comments")
  * 5. Copy the repoId, category, and categoryId from the generated config

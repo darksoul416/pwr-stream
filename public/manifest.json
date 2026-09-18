@@ -1,6 +1,6 @@
 {
-  "name": "PWR Stream — Watch Anime, Movies & TV",
-  "short_name": "PWR Stream",
+  "name": "Netflix Clone — Watch Anime, Movies & TV",
+  "short_name": "Netflix Clone",
   "description": "Stream anime, movies and TV shows free. YouTube-style streaming platform with PWR flair.",
   "start_url": "/",
   "display": "standalone",
