@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ServiceWorkerRegister } from "@/components/pwr/service-worker-register";
+import { PopupBlocker } from "@/components/pwr/popup-blocker";
 import { AuthProvider } from "@/components/auth/auth-provider";
 
 const geistSans = Geist({
@@ -165,6 +166,7 @@ export default function RootLayout({
         </AuthProvider>
         <Toaster />
         <ServiceWorkerRegister />
+        <PopupBlocker />
       </body>
     </html>
   );

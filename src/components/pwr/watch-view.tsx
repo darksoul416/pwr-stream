@@ -349,9 +349,9 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                 src={embedUrl}
                 title={title}
                 className="absolute inset-0 w-full h-full"
-                allowFullScreen
                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                 referrerPolicy="no-referrer"
+                allowFullScreen
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-center px-4">
