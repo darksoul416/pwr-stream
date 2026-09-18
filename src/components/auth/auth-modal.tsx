@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { signIn } from "next-auth/react";
 import { X, Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,11 @@ export function AuthModal({ open, onClose, initialMode = "login" }: AuthModalPro
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -42,7 +48,7 @@ export function AuthModal({ open, onClose, initialMode = "login" }: AuthModalPro
     }
   }, []);
 
-  if (!open) return null;
+  if (!mounted || !open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -132,7 +138,7 @@ export function AuthModal({ open, onClose, initialMode = "login" }: AuthModalPro
     resetForm: "Set New Password",
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={onClose}
@@ -332,6 +338,7 @@ export function AuthModal({ open, onClose, initialMode = "login" }: AuthModalPro
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
