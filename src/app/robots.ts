@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/"],
     },
-    sitemap: "https://netflix-clone.vercel.app/sitemap.xml",
-    host: "https://netflix-clone.vercel.app",
+    sitemap: "https://mobiman.vercel.app/sitemap.xml",
+    host: "https://mobiman.vercel.app",
   };
 }

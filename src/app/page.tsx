@@ -159,15 +159,16 @@ export default function Home() {
           <div className="px-6 py-8 max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center font-black text-white text-sm pwr-glow">
-                  N
+                <div className="w-8 h-8 rounded-lg overflow-hidden pwr-glow">
+                  { }
+                  <img src="/icons/icon-192.png" alt="Mobiman" className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <p className="font-black tracking-tight text-red-600">
-                    NETFLIX CLONE
+                  <p className="font-black tracking-tight pwr-gradient-text">
+                    MOBIMAN
                   </p>
                   <p className="text-[10px] text-muted-foreground">
-                    Watch anime, movies & TV — free
+                    Fly. Watch. Repeat.
                   </p>
                 </div>
               </div>
@@ -186,7 +187,7 @@ export default function Home() {
               </div>
             </div>
             <p className="mt-6 text-[10px] text-muted-foreground/60 leading-relaxed">
-              Netflix Clone aggregates publicly available metadata from The Movie
+              Mobiman aggregates publicly available metadata from The Movie
               Database (TMDB) and AniList, and embeds video streams from
               vidlove.cc. We do not host any content ourselves. All trademarks,
               logos and content belong to their respective owners.

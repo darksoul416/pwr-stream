@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const title = searchParams.get("title") || "Netflix Clone";
+  const title = searchParams.get("title") || "Mobiman";
   const subtitle = searchParams.get("subtitle") || "Watch free movies, TV & anime";
   const poster = searchParams.get("poster");
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     font: "Inter",
     "font-size": "48",
     "subtitle-font-size": "20",
-    logo: "https://netflix-clone.vercel.app/icons/icon-192.png",
+    logo: "https://mobiman.vercel.app/icons/icon-192.png",
   });
 
   const ogUrl = `https://www.ogimage.website/api/generate?${params.toString()}`;

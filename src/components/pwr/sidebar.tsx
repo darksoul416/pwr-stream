@@ -55,17 +55,22 @@ export function Sidebar({ view, onNavigate, open, onClose }: SidebarProps) {
             className="flex items-center gap-2.5 group"
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-red-600 blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
-              <div className="relative w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center font-black text-white pwr-glow">
-                <span className="text-lg">N</span>
+              <div className="absolute inset-0 bg-primary blur-md opacity-60 group-hover:opacity-90 transition-opacity" />
+              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-neon-pink flex items-center justify-center font-black text-white pwr-glow overflow-hidden">
+                { }
+                <img
+                  src="/icons/icon-192.png"
+                  alt="Mobiman"
+                  className="w-full h-full object-cover rounded-xl"
+                />
               </div>
             </div>
             <div className="flex flex-col leading-none">
-              <span className="text-lg font-black tracking-tight text-red-600">
-                NETFLIX
+              <span className="text-lg font-black tracking-tight pwr-gradient-text">
+                MOBIMAN
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                CLONE
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Fly. Watch. Repeat.
               </span>
             </div>
           </button>
@@ -170,7 +175,7 @@ export function Sidebar({ view, onNavigate, open, onClose }: SidebarProps) {
           </div>
 
           <p className="text-[10px] text-muted-foreground/60 text-center mt-3 px-2 leading-relaxed">
-            Streams via vidlove.cc &amp; AniList.<br/>
+            Streams via Mobiman &amp; AniList.<br/>
             For educational purposes only.
           </p>
 

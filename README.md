@@ -1,4 +1,4 @@
-# 🎬 Netflix Clone — Watch Anime, Movies & TV
+# 🦸 Mobiman — Watch Anime, Movies & TV
 
 A YouTube-style streaming platform with a dark gaming/streamer aesthetic (PWR style). Stream anime, movies, and TV shows free. No signup required.
 

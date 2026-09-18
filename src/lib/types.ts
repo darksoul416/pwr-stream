@@ -1,4 +1,4 @@
-// Shared types for Netflix Clone app
+// Shared types for Mobiman app
 
 export type MediaType = "movie" | "tv" | "anime";
 export type ViewName =

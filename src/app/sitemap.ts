@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://netflix-clone.vercel.app";
+  const baseUrl = "https://mobiman.vercel.app";
   const now = new Date();
 
   // Static pages

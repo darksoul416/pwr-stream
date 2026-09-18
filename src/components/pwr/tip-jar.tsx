@@ -25,7 +25,7 @@ export function TipJar({ variant = "compact", className }: TipJarProps) {
           )}
         >
           <Heart className="w-3.5 h-3.5 text-primary fill-current" />
-          Support Netflix Clone
+          Support Mobiman
         </button>
 
         {open && (
@@ -40,7 +40,7 @@ export function TipJar({ variant = "compact", className }: TipJarProps) {
               <div className="flex items-center justify-between p-4 border-b border-border/40">
                 <h3 className="text-base font-bold flex items-center gap-2">
                   <Heart className="w-4 h-4 text-primary fill-current" />
-                  Support Netflix Clone
+                  Support Mobiman
                 </h3>
                 <button
                   onClick={() => setOpen(false)}
@@ -52,7 +52,7 @@ export function TipJar({ variant = "compact", className }: TipJarProps) {
 
               <div className="p-4 space-y-2">
                 <p className="text-xs text-muted-foreground mb-3 text-center">
-                  Netflix Clone is free &amp; ad-free. If you love it, consider buying us a coffee! ☕
+                  Mobiman is free &amp; ad-free. If you love it, consider buying us a coffee! ☕
                 </p>
 
                 {tips.buyMeCoffee && (

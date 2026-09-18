@@ -1,6 +1,6 @@
 {
-  "name": "Netflix Clone — Watch Anime, Movies & TV",
-  "short_name": "Netflix Clone",
+  "name": "Mobiman — Watch Anime, Movies & TV",
+  "short_name": "Mobiman",
   "description": "Stream anime, movies and TV shows free. YouTube-style streaming platform with PWR flair.",
   "start_url": "/",
   "display": "standalone",

@@ -54,13 +54,13 @@ export async function POST(req: NextRequest) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Netflix Clone <noreply@netflixclone.app>",
+            from: "Mobiman <noreply@mobiman.app>",
             to: [email],
-            subject: "Password Reset - Netflix Clone",
+            subject: "Password Reset - Mobiman",
             html: `
               <div style="font-family: sans-serif; max-width: 500px; margin: auto;">
-                <h2 style="color: #7c3aed;">Netflix Clone — Password Reset</h2>
-                <p>You requested a password reset for your Netflix Clone account.</p>
+                <h2 style="color: #7c3aed;">Mobiman — Password Reset</h2>
+                <p>You requested a password reset for your Mobiman account.</p>
                 <p>Click the button below to set a new password:</p>
                 <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #7c3aed; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">Reset Password</a>
                 <p style="color: #666; font-size: 12px;">This link expires in 1 hour. If you didn't request this, you can ignore this email.</p>

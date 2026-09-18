@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://netflix-clone.example.com"),
-  title: "Netflix Clone — Watch Anime, Movies & TV",
+  metadataBase: new URL("https://mobiman.example.com"),
+  title: "Mobiman — Watch Anime, Movies & TV",
   description:
     "Stream anime, movies and TV shows in one place. A YouTube-style streaming platform with PWR flair.",
   keywords: [
@@ -31,12 +31,12 @@ export const metadata: Metadata = {
     "free movies",
     "free anime",
   ],
-  authors: [{ name: "Netflix Clone" }],
-  applicationName: "Netflix Clone",
+  authors: [{ name: "Mobiman" }],
+  applicationName: "Mobiman",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "Netflix Clone",
+    title: "Mobiman",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {
@@ -54,16 +54,16 @@ export const metadata: Metadata = {
     shortcut: ["/icon.svg"],
   },
   openGraph: {
-    title: "Netflix Clone — Watch Anime, Movies & TV",
+    title: "Mobiman — Watch Anime, Movies & TV",
     description:
       "Stream anime, movies and TV shows free. YouTube-style streaming platform.",
     type: "website",
-    siteName: "Netflix Clone",
+    siteName: "Mobiman",
     images: ["/icons/icon-512.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Netflix Clone",
+    title: "Mobiman",
     description: "Stream anime, movies and TV shows free.",
     images: ["/icons/icon-512.png"],
   },
@@ -95,14 +95,14 @@ export default function RootLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
-        <meta name="apple-mobile-web-app-title" content="Netflix Clone" />
+        <meta name="apple-mobile-web-app-title" content="Mobiman" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
           content="default"
         />
         {/* Android Chrome */}
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="Netflix Clone" />
+        <meta name="application-name" content="Mobiman" />
         {/* Safe area insets for notched phones */}
         <style>{`
           html {
@@ -123,8 +123,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "Netflix Clone",
-              url: "https://netflix-clone.vercel.app",
+              name: "Mobiman",
+              url: "https://mobiman.vercel.app",
               description:
                 "Stream anime, movies and TV shows free. YouTube-style streaming platform with PWR flair.",
               potentialAction: {
@@ -132,7 +132,7 @@ export default function RootLayout({
                 target: {
                   "@type": "EntryPoint",
                   urlTemplate:
-                    "https://netflix-clone.vercel.app/?q={search_term_string}",
+                    "https://mobiman.vercel.app/?q={search_term_string}",
                 },
                 "query-input": "required name=search_term_string",
               },

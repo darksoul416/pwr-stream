@@ -62,10 +62,11 @@ export function TopBar({ onMenuClick, onSearch, onLogoClick }: TopBarProps) {
         <button
           onClick={onLogoClick}
           className="lg:hidden flex items-center gap-2 group"
-          aria-label="Netflix Clone home"
+          aria-label="Mobiman home"
         >
-          <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center pwr-glow">
-            <span className="text-sm font-black text-white">N</span>
+          <div className="w-8 h-8 rounded-lg overflow-hidden pwr-glow">
+            { }
+            <img src="/icons/icon-192.png" alt="Mobiman" className="w-full h-full object-cover" />
           </div>
         </button>
 

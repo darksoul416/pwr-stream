@@ -1,5 +1,5 @@
 /**
- * Netflix Clone Monetization Configuration
+ * Mobiman Monetization Configuration
  *
  * LEGAL DISCLAIMER:
  * This platform embeds streams from third-party providers (vidlove.cc).

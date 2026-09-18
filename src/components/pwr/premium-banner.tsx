@@ -59,7 +59,7 @@ export function PremiumBanner({ variant = "banner", className }: PremiumBannerPr
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
             <Crown className="w-5 h-5 text-yellow-500" />
-            <h3 className="text-sm font-bold">Netflix Clone Premium</h3>
+            <h3 className="text-sm font-bold">Mobiman Premium</h3>
             <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">
               ${premium.price}/mo
             </span>
@@ -116,7 +116,7 @@ function PremiumModal({ open, onClose }: { open: boolean; onClose: () => void })
           <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-yellow-500 to-primary flex items-center justify-center pwr-glow">
             <Crown className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-xl font-black pwr-gradient-text">Netflix Clone Premium</h2>
+          <h2 className="text-xl font-black pwr-gradient-text">Mobiman Premium</h2>
           <p className="text-xs text-muted-foreground mt-1">
             Support the project + unlock premium features
           </p>
