@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
+import { updateUserPassword } from "../[nextauth]/route";
+
+declare global {
+  var __resetTokens: Map<string, { email: string; expiry: number }> | undefined;
+}
+
+function getResetTokens() {
+  if (!global.__resetTokens) global.__resetTokens = new Map();
+  return global.__resetTokens;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,36 +28,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await db.user.findFirst({
-      where: {
-        resetToken: token,
-        resetTokenExpiry: { gt: new Date() },
-      },
-    });
+    const tokens = getResetTokens();
+    const resetData = tokens.get(token);
 
-    if (!user) {
+    if (!resetData || resetData.expiry < Date.now()) {
       return NextResponse.json(
         { error: "Invalid or expired reset token" },
         { status: 400 }
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    await db.user.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        resetToken: null,
-        resetTokenExpiry: null,
-      },
-    });
+    await updateUserPassword(resetData.email, password);
+    tokens.delete(token); // Use once
 
     return NextResponse.json({ success: true });
   } catch (e: any) {
-    return NextResponse.json(
-      { error: e?.message || "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: e.message || "Something went wrong" }, { status: 500 });
   }
 }
