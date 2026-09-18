@@ -4,7 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ServiceWorkerRegister } from "@/components/pwr/service-worker-register";
 import { PopupBlocker } from "@/components/pwr/popup-blocker";
-import { AuthProvider } from "@/components/auth/auth-provider";
+import { AuthModal } from "@/components/auth/auth-modal";
+import { AuthCallbackHandler } from "@/components/auth/auth-callback-handler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -161,9 +162,8 @@ export default function RootLayout({
             }}
           />
         )}
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <AuthCallbackHandler />
+        {children}
         <Toaster />
         <ServiceWorkerRegister />
         <PopupBlocker />
