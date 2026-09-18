@@ -14,11 +14,66 @@ datasource db {
 }
 
 model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  password     String
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Password reset
+  resetToken      String?
+  resetTokenExpiry DateTime?
+
+  // Watchlist + Continue Watching (cloud sync when logged in)
+  watchlist       WatchlistItem[]
+  continueWatching ContinueWatchingItem[]
+}
+
+model WatchlistItem {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
+  userId    String
+  mediaId   String
+  title     String
+  poster    String
+  backdrop  String
+  year      String
+  rating    Float
+  type      String
+  source    String
+  tmdbId    Int?
+  anilistId Int?
   createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaId])
+}
+
+model ContinueWatchingItem {
+  id        String   @id @default(cuid())
+  userId    String
+  mediaId   String
+  title     String
+  poster    String
+  backdrop  String
+  year      String
+  type      String
+  source    String
+  tmdbId    Int?
+  anilistId Int?
+  season    Int?
+  episode   Int?
+  progress  Float
+  duration  Int
+  position  Int
   updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaId])
 }
 
 model Post {

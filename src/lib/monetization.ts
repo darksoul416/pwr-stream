@@ -39,7 +39,7 @@ export const MONETIZATION = {
     network: "adsterra", // "adsterra" | "adsense" | "ezoic" | "mediavine"
     // Adsterra — instant approval, accepts streaming sites
     // Get your key at https://publishers.adsterra.com/
-    adsterraKey: "your-adsterra-key-here", // Replace with your Adsterra banner key
+    adsterraKey: "73a1550778bb32215e9920a725788086", // Your real Adsterra key
     // Google AdSense (requires approval)
     adsenseClient: "ca-pub-XXXXXXXXXXXXXXXX",
     // ONLY show ads on these pages (never on watch/embed pages)
