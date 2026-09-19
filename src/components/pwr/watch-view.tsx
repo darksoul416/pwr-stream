@@ -236,6 +236,7 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
   const embedUrl = useMemo(() => {
     if (!activeSource) return "";
     const base = buildEmbedUrl(activeSource, isMovie, tmdbId, season, episode);
+    let finalUrl = base;
     // Append vidlove query params for additional controls (only vidlove supports these)
     if (activeSource.id === "vidlove") {
       const params = new URLSearchParams({
@@ -243,9 +244,10 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
         showNextEpisode: autoNext ? "true" : "false",
       });
       if (quality && quality !== "auto") params.set("q", quality);
-      return base + (base.includes("?") ? "&" : "?") + params.toString();
+      finalUrl = base + (base.includes("?") ? "&" : "?") + params.toString();
     }
-    return base;
+    // Route through our proxy to block popups/redirects from the embed
+    return `/embed-proxy?url=${encodeURIComponent(finalUrl)}`;
   }, [activeSource, isMovie, tmdbId, season, episode, autoNext, quality]);
 
   // Get audio tracks and subtitle languages from details
@@ -409,26 +411,30 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                     <ChevronDown className={cn("w-3 h-3 transition-transform", showServers && "rotate-180")} />
                   </button>
                   {showServers && (
-                    <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30 max-h-72 overflow-y-auto">
-                      {embedSources.map((src) => (
-                        <button
-                          key={src.id}
-                          onClick={() => {
-                            setActiveSourceId(src.id);
-                            setShowServers(false);
-                          }}
-                          className={cn(
-                            "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
-                            src.id === activeSource?.id && "bg-primary/15 text-primary"
-                          )}
-                        >
-                          <span className="truncate">{src.label}</span>
-                          {src.id === activeSource?.id && (
-                            <span className="text-primary text-[10px]">●</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
+                    <>
+                      <div className="fixed inset-0 z-30" onClick={() => setShowServers(false)} />
+                      <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-40 max-h-72 overflow-y-auto">
+                        {embedSources.map((src) => (
+                          <button
+                            key={src.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveSourceId(src.id);
+                              setShowServers(false);
+                            }}
+                            className={cn(
+                              "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
+                              src.id === activeSource?.id && "bg-primary/15 text-primary"
+                            )}
+                          >
+                            <span className="truncate">{src.label}</span>
+                            {src.id === activeSource?.id && (
+                              <span className="text-primary text-[10px]">●</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
@@ -454,14 +460,17 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                     <ChevronDown className={cn("w-3 h-3 transition-transform", showAudio && "rotate-180")} />
                   </button>
                   {showAudio && (
-                    <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30 max-h-72 overflow-y-auto">
-                      {audioTracks.map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => {
-                            setAudioTrackId(t.id);
-                            setShowAudio(false);
-                          }}
+                    <>
+                      <div className="fixed inset-0 z-30" onClick={() => setShowAudio(false)} />
+                      <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-40 max-h-72 overflow-y-auto">
+                        {audioTracks.map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAudioTrackId(t.id);
+                              setShowAudio(false);
+                            }}
                           className={cn(
                             "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
                             t.id === audioTrackId && "bg-primary/15 text-primary"
@@ -471,9 +480,10 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                           {t.id === audioTrackId && (
                             <span className="text-primary text-[10px]">●</span>
                           )}
-                        </button>
-                      ))}
-                    </div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
@@ -506,38 +516,43 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                     <ChevronDown className={cn("w-3 h-3 transition-transform", showSubtitles && "rotate-180")} />
                   </button>
                   {showSubtitles && (
-                    <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30 max-h-72 overflow-y-auto">
-                      <button
-                        onClick={() => {
-                          setSubtitlesOn(!subtitlesOn);
-                        }}
+                    <>
+                      <div className="fixed inset-0 z-30" onClick={() => setShowSubtitles(false)} />
+                      <div className="absolute left-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-40 max-h-72 overflow-y-auto">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSubtitlesOn(!subtitlesOn);
+                          }}
                         className={cn(
                           "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
                           !subtitlesOn && "bg-primary/15 text-primary"
                         )}
                       >
-                        <span>{subtitlesOn ? "Subtitles On" : "Subtitles Off"}</span>
-                        <span className="text-primary text-[10px]">{subtitlesOn ? "ON" : "OFF"}</span>
-                      </button>
-                      <div className="border-t border-border/40 my-1" />
-                      {subtitleLanguages.map((l) => (
-                        <button
-                          key={l.code}
-                          onClick={() => {
-                            setSubtitleLang(l.code);
-                            setSubtitlesOn(true);
-                            setShowSubtitles(false);
-                          }}
+                          <span>{subtitlesOn ? "Subtitles On" : "Subtitles Off"}</span>
+                          <span className="text-primary text-[10px]">{subtitlesOn ? "ON" : "OFF"}</span>
+                        </button>
+                        <div className="border-t border-border/40 my-1" />
+                        {subtitleLanguages.map((l) => (
+                          <button
+                            key={l.code}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSubtitleLang(l.code);
+                              setSubtitlesOn(true);
+                              setShowSubtitles(false);
+                            }}
                           className={cn(
                             "w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium hover:bg-secondary/80 transition-colors text-left",
                             l.code === subtitleLang && subtitlesOn && "bg-primary/15 text-primary"
                           )}
                         >
-                          <span className="truncate">{l.englishName}</span>
-                          <span className="text-muted-foreground text-[10px] uppercase">{l.code}</span>
-                        </button>
-                      ))}
-                    </div>
+                            <span className="truncate">{l.englishName}</span>
+                            <span className="text-muted-foreground text-[10px] uppercase">{l.code}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
@@ -558,7 +573,9 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                   <ChevronDown className={cn("w-3 h-3 transition-transform", showSettings && "rotate-180")} />
                 </button>
                 {showSettings && (
-                  <div className="absolute left-0 top-full mt-2 w-64 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30">
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setShowSettings(false)} />
+                    <div className="absolute left-0 top-full mt-2 w-64 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-40">
                     {/* Quality */}
                     <div className="px-4 py-2.5 border-b border-border/40">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
@@ -568,7 +585,7 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                         {["auto", "1080", "720", "480"].map((q) => (
                           <button
                             key={q}
-                            onClick={() => setQuality(q)}
+                            onClick={(e) => { e.stopPropagation(); setQuality(q); }}
                             className={cn(
                               "px-2 py-1.5 rounded-md text-[11px] font-semibold border transition-all uppercase",
                               quality === q
@@ -594,7 +611,7 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                         </p>
                       </div>
                       <button
-                        onClick={() => setAutoNext(!autoNext)}
+                        onClick={(e) => { e.stopPropagation(); setAutoNext(!autoNext); }}
                         className={cn(
                           "relative w-10 h-6 rounded-full transition-colors",
                           autoNext ? "bg-primary" : "bg-secondary"
@@ -608,7 +625,8 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                         />
                       </button>
                     </div>
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -680,23 +698,29 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                     />
                   </button>
                   {showSeasons && (
-                    <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-30 max-h-72 overflow-y-auto">
-                      {seasonsList.map((s) => (
-                        <button
-                          key={s.id}
-                          onClick={() => selectSeason(s)}
-                          className={cn(
-                            "w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium hover:bg-secondary/80 transition-colors text-left",
-                            s.seasonNumber === season && "bg-primary/15 text-primary"
-                          )}
-                        >
-                          <span className="truncate">{s.name}</span>
-                          <span className="text-[10px] text-muted-foreground ml-2">
-                            {s.episodeCount} eps
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                    <>
+                      <div className="fixed inset-0 z-30" onClick={() => setShowSeasons(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border/60 bg-popover/95 backdrop-blur-xl shadow-2xl overflow-hidden z-40 max-h-72 overflow-y-auto">
+                        {seasonsList.map((s) => (
+                          <button
+                            key={s.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              selectSeason(s);
+                            }}
+                            className={cn(
+                              "w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium hover:bg-secondary/80 transition-colors text-left",
+                              s.seasonNumber === season && "bg-primary/15 text-primary"
+                            )}
+                          >
+                            <span className="truncate">{s.name}</span>
+                            <span className="text-[10px] text-muted-foreground ml-2">
+                              {s.episodeCount} eps
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
