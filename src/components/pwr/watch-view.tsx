@@ -67,21 +67,6 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
   const [showSubtitles, setShowSubtitles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Close all dropdowns when clicking outside
-  const controlsRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (controlsRef.current && !controlsRef.current.contains(e.target as Node)) {
-        setShowServers(false);
-        setShowAudio(false);
-        setShowSubtitles(false);
-        setShowSettings(false);
-        setShowSeasons(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
   const [episodesLoading, setEpisodesLoading] = useState(false);
   const [activeSourceId, setActiveSourceId] = useState<string>("vidlove");
 
@@ -387,7 +372,7 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
           </div>
 
           {/* Player controls bar — server, audio, subtitles, settings */}
-          <div ref={controlsRef} className="rounded-2xl border border-border/40 bg-card/40 backdrop-blur-sm p-3 space-y-3">
+          <div className="rounded-2xl border border-border/40 bg-card/40 backdrop-blur-sm p-3 space-y-3">
             {/* Row 1: Server selector + settings dropdowns */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Server selector */}
