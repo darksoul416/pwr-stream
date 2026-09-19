@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { ArrowLeft, Play, Star, Calendar, Clock, Tv, Film, Sparkles, ChevronDown, Loader2, AlertTriangle, Heart, Share2, Plus, Server, Languages, Subtitles, Settings, SkipForward, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MediaDetails, AnimeDetails, Episode, Season, WatchTarget, MediaItem, AnimeItem, EmbedSource, AudioTrack, SubtitleLanguage } from "@/lib/types";
@@ -66,6 +66,22 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
   const [showAudio, setShowAudio] = useState(false);
   const [showSubtitles, setShowSubtitles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Close all dropdowns when clicking outside
+  const controlsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (controlsRef.current && !controlsRef.current.contains(e.target as Node)) {
+        setShowServers(false);
+        setShowAudio(false);
+        setShowSubtitles(false);
+        setShowSettings(false);
+        setShowSeasons(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const [episodesLoading, setEpisodesLoading] = useState(false);
   const [activeSourceId, setActiveSourceId] = useState<string>("vidlove");
 
@@ -369,7 +385,7 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
           </div>
 
           {/* Player controls bar — server, audio, subtitles, settings */}
-          <div className="rounded-2xl border border-border/40 bg-card/40 backdrop-blur-sm p-3 space-y-3">
+          <div ref={controlsRef} className="rounded-2xl border border-border/40 bg-card/40 backdrop-blur-sm p-3 space-y-3">
             {/* Row 1: Server selector + settings dropdowns */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Server selector */}
@@ -388,7 +404,7 @@ export function WatchView({ target, onBack, onPlayItem }: WatchViewProps) {
                     Server
                     <span className="text-primary/80">·</span>
                     <span className="text-foreground/80">
-                      {activeSource?.label?.split(" ")[0] || "Auto"}
+                      {activeSource?.label?.match(/\(([^)]+)\)/)?.[1] || activeSource?.label?.split(" ")[0] || "Auto"}
                     </span>
                     <ChevronDown className={cn("w-3 h-3 transition-transform", showServers && "rotate-180")} />
                   </button>
